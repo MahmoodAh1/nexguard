@@ -1,0 +1,127 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nexguard"
+version = "0.1.0"
+description = "NexGuard — AI-Powered Security Operations Platform (backend)"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [{ name = "NexGuard" }]
+
+# Core runtime dependencies. Intentionally light — heavy ML libraries live in the
+# `detection` extra so the base image and early CI stay fast. See ADR-0001.
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "alembic>=1.14",
+    "aiosqlite>=0.20",
+    "redis>=5.2",
+    "structlog>=24.4",
+    "pyjwt>=2.10",
+    "argon2-cffi>=23.1",
+    "httpx>=0.28",
+    "python-multipart>=0.0.12",
+    "prometheus-client>=0.21",
+    "psutil>=6.1",
+    "drain3>=0.9.11",
+    "numpy>=1.26",
+    "typing-extensions>=4.12",
+]
+
+[project.optional-dependencies]
+# Detection/serving ML stack (PyTorch sequence model + sklearn IsolationForest).
+detection = [
+    "torch>=2.2",
+    "scikit-learn>=1.5",
+    "scipy>=1.13",
+]
+# Production database driver.
+postgres = ["asyncpg>=0.30"]
+# Developer/CI tooling.
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.115",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "types-redis>=4.6",
+]
+
+[project.scripts]
+nexguard = "nexguard.interfaces.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nexguard"]
+
+# ─────────────────────────── Ruff ───────────────────────────
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",      # pycodestyle + pyflakes
+    "I",                # isort
+    "N",                # pep8-naming
+    "UP",               # pyupgrade
+    "B",                # bugbear
+    "C4",               # comprehensions
+    "SIM",              # simplify
+    "TID",              # tidy-imports
+    "RUF",              # ruff-specific
+    "ASYNC",            # async correctness
+]
+ignore = [
+    "B008",   # FastAPI Depends() in defaults is idiomatic
+    "N818",   # domain error names don't need Error suffix
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["nexguard"]
+
+# ─────────────────────────── Mypy ───────────────────────────
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+warn_redundant_casts = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# Third-party libs without type stubs.
+module = ["drain3.*", "sklearn.*", "torch.*", "scipy.*", "joblib.*"]
+ignore_missing_imports = true
+
+# ─────────────────────────── Pytest ───────────────────────────
+[tool.pytest.ini_options]
+minversion = "8.0"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra -q --strict-markers"
+markers = [
+    "integration: exercises a real adapter (db, drain3, torch, sklearn)",
+    "slow: long-running (model training)",
+]
+
+[tool.coverage.run]
+source = ["nexguard"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
