@@ -1,0 +1,57 @@
+# ── Python ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ── uv ─────────────────────────────────────────────────
+# lockfile IS committed; caches are not
+.uv/
+
+# ── ML / data / artifacts ──────────────────────────────
+mlruns/
+mlartifacts/
+*.pt
+*.pth
+*.pkl
+*.joblib
+ml/data/raw/
+ml/data/processed/
+!ml/data/samples/
+models/artifacts/
+
+# ── Node / Next.js ─────────────────────────────────────
+node_modules/
+.next/
+out/
+.turbo/
+frontend/.env*
+!frontend/.env.example
+npm-debug.log*
+pnpm-debug.log*
+*.tsbuildinfo
+
+# ── Databases ──────────────────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+
+# ── Editors / OS ───────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
