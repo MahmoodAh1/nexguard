@@ -143,7 +143,7 @@ class CountVector:
 
     @classmethod
     def from_counts(
-        cls, counts: Mapping[EventId, int], vocab: Sequence[EventId]
+        cls, counts: Mapping[EventId, float], vocab: Sequence[EventId]
     ) -> CountVector:
         ordered_vocab = tuple(vocab)
         values = tuple(float(counts.get(event_id, 0)) for event_id in ordered_vocab)

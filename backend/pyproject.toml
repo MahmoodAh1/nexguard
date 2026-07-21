@@ -123,6 +123,10 @@ markers = [
     "integration: exercises a real adapter (db, drain3, torch, sklearn)",
     "slow: long-running (model training)",
 ]
+filterwarnings = [
+    # Third-party: joblib's numpy pickle vs NumPy 2.5 shape-setter deprecation.
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning:joblib.numpy_pickle",
+]
 
 [tool.coverage.run]
 source = ["nexguard"]
