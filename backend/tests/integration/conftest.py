@@ -9,6 +9,18 @@ import pytest
 
 from nexguard.infrastructure.db.session import Database
 
+_FIXTURES = Path(__file__).parent.parent / "fixtures"
+
+
+@pytest.fixture
+def hdfs_log_path() -> Path:
+    return _FIXTURES / "hdfs" / "hdfs_sample.log"
+
+
+@pytest.fixture
+def hdfs_label_path() -> Path:
+    return _FIXTURES / "hdfs" / "anomaly_label.csv"
+
 
 @pytest.fixture
 async def database(tmp_path: Path) -> AsyncIterator[Database]:
