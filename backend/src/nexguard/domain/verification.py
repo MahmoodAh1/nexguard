@@ -72,14 +72,25 @@ class EvidenceIndex:
             if maybe_ts:
                 timestamps.add(maybe_ts)
 
-        tokens: set[str] = {session.external_id, session.dataset}
-        for event in session.events:
-            for key, value in event.params.items():
-                if _HOSTLIKE_KEYS.search(key):
-                    tokens.add(value)
+        tokens = {session.external_id, session.dataset} | host_tokens(session)
 
         return cls(
             event_ids=frozenset(event_ids),
             timestamps=frozenset(timestamps),
             tokens=frozenset(tokens),
         )
+
+
+def host_tokens(session: Session) -> set[str]:
+    """Host/component identifiers appearing in a session's parsed params.
+
+    Shared by :meth:`EvidenceIndex.build` and the report prompt builder so the
+    grounding a report is given and the facts it is verified against are derived
+    identically — a report can only ever cite hosts that truly appear in the logs.
+    """
+    return {
+        value
+        for event in session.events
+        for key, value in event.params.items()
+        if _HOSTLIKE_KEYS.search(key)
+    }

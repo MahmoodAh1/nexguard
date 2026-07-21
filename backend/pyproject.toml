@@ -11,8 +11,9 @@ requires-python = ">=3.12"
 license = { text = "Apache-2.0" }
 authors = [{ name = "NexGuard" }]
 
-# Core runtime dependencies. Intentionally light — heavy ML libraries live in the
-# `detection` extra so the base image and early CI stay fast. See ADR-0001.
+# Core runtime dependencies. The serving path runs detection inline (PyTorch +
+# scikit-learn), so those are runtime deps, not optional. Offline training/MLOps
+# tooling (MLflow) lives in ml/ and never enters the serving image. See ADR-0001.
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
@@ -31,19 +32,19 @@ dependencies = [
     "psutil>=6.1",
     "drain3>=0.9.11",
     "numpy>=1.26",
+    "torch>=2.2",
+    "scikit-learn>=1.5",
+    "scipy>=1.13",
     "typing-extensions>=4.12",
 ]
 
 [project.optional-dependencies]
-# Detection/serving ML stack (PyTorch sequence model + sklearn IsolationForest).
-detection = [
-    "torch>=2.2",
-    "scikit-learn>=1.5",
-    "scipy>=1.13",
-]
-# Production database driver.
+# Production database driver (SQLite is the dev default).
 postgres = ["asyncpg>=0.30"]
-# Developer/CI tooling.
+
+# Developer/CI tooling as a PEP 735 dependency group — uv installs it by default,
+# so `uv run` keeps the environment stable across invocations.
+[dependency-groups]
 dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
@@ -59,6 +60,9 @@ nexguard = "nexguard.interfaces.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nexguard"]
+
+[tool.uv]
+default-groups = ["dev"]
 
 # ─────────────────────────── Ruff ───────────────────────────
 [tool.ruff]
