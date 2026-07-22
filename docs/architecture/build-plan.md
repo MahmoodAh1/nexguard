@@ -46,12 +46,13 @@ adapters proving the DatasetSource abstraction generalizes; committed benchmarks
 ([docs/benchmarks.md](../benchmarks.md)) + reproducible full-dataset download.
 **Gate 2 reached.**
 
-## Phase 3 — Full platform surface
-The remaining pages (Alert Explorer, Incident Reports, Log Explorer, Detection
-Analytics, Live Monitoring, Feedback Center, Configuration); full WebSocket
-metric streaming; feedback loop + recalibration with before/after precision/recall;
-notifications, empty/loading states, accessibility pass.
-**Gate 3.**
+## Phase 3 — Full platform surface ✅ COMPLETE
+All 8 console pages live (Executive Dashboard + Alert Explorer, Incident Reports,
+Log Explorer, Detection Analytics, Live Monitoring, Feedback Center, Configuration);
+WebSocket metric streaming (`/ws/metrics`); analyst feedback loop + recalibration
+with persisted before/after precision/recall (`CalibrationSnapshot`); runtime-
+adjustable operating point (admin) with audit; sessions/templates/analytics/config
+APIs; loading + empty states throughout. **Gate 3 reached.**
 
 ## Phase 4 — Hardening & delivery
 Security hardening pass, observability dashboards, full test matrix (unit /

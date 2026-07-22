@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12-3776ab)](backend/pyproject.toml)
 [![Next.js](https://img.shields.io/badge/Next.js-15-000000)](frontend/package.json)
 [![License](https://img.shields.io/badge/License-Apache%202.0-22d3ee)](#license)
-&nbsp;·&nbsp; **134 tests** &nbsp;·&nbsp; `mypy --strict` clean &nbsp;·&nbsp; local-first, privacy-preserving
+&nbsp;·&nbsp; **169 tests** &nbsp;·&nbsp; `mypy --strict` clean &nbsp;·&nbsp; local-first, privacy-preserving
 
 </div>
 
@@ -24,9 +24,9 @@ reports, and a **hallucination-verification gate** that refuses to let the copil
 fabricate evidence. Nothing leaves your infrastructure — the LLM is a local Ollama
 model, never a cloud API.
 
-> **Status — Checkpoint 1 (vertical slice) complete.** A real end-to-end path runs
-> through every layer. Deeper model evaluation/MLOps, the remaining console pages,
-> and the feedback loop are scoped for later phases — see the
+> **Status — Phases 1–3 complete.** The full platform is built: layered detection
+> with model comparison + calibration + MLflow, the analyst feedback loop, and all
+> 8 console pages live. Phase 4 (hardening + release polish) remains — see the
 > [roadmap](#-roadmap) and [`docs/architecture/build-plan.md`](docs/architecture/build-plan.md).
 
 ## ✨ Highlights
@@ -52,11 +52,18 @@ model, never a cloud API.
 A restrained, data-dense dark theme in the spirit of CrowdStrike Falcon and Microsoft
 Sentinel. Run the stack and open **http://localhost:3000**:
 
-| View | What it shows |
+| Page | What it shows |
 |------|---------------|
-| **Sign in** | Split-panel enterprise login (JWT); demo credentials one click away |
-| **Executive Dashboard** | Active alerts, critical/high counts, avg anomaly score, live CPU/memory; a **live alert feed** (streams over WebSocket), severity-distribution donut, and model/system health |
-| **Incident Report drawer** | Full detection evidence + the verified (or rejected) AI report — timeline, affected components, MITRE hypotheses, and recommended investigation/containment steps |
+| **Executive Dashboard** | Active/critical alerts, avg anomaly score, live CPU/memory; a **live alert feed** (WebSocket), severity donut, model/system health |
+| **Alert Explorer** | Search + severity/status filters, investigation workflow (label alerts), report drawer |
+| **Incident Reports** | AI-drafted, verified (or rejected) reports — evidence, timeline, affected components, MITRE hypotheses, investigation/containment steps |
+| **Log Explorer** | Parsed sessions + their event sequences, and the mined Drain3 templates |
+| **Detection Analytics** | Alert distribution, anomaly-score spectrum, admin threshold tuning, latest recalibration impact |
+| **Live Monitoring** | Streaming CPU/RAM/RSS + active alerts (`/ws/metrics`), live resource chart, event stream |
+| **Feedback Center** | Analyst verdict distribution, recalibration history, before/after precision/recall |
+| **Configuration** | Admin-editable detection operating point (weights/threshold), model + system info |
+
+Sign in via a split-panel enterprise login (JWT); demo credentials are one click away.
 
 <!-- Screenshots: capture from the running console at http://localhost:3000 and drop
      PNGs under docs/screenshots/ (login.png, dashboard.png, report-drawer.png). -->
@@ -150,12 +157,13 @@ are in **[`docs/benchmarks.md`](docs/benchmarks.md)**. Reproduce with
 ## 🧪 Testing
 
 ```bash
-cd backend  && uv run pytest -q          # 123 backend tests (unit/integration/api/regression)
-cd frontend && npm run test              # 11 component/unit tests
+cd backend  && uv run pytest -q          # 157 backend tests (unit/integration/api/regression)
+cd frontend && npm run test              # 12 component/unit tests
 ```
 
 Coverage spans domain logic, every adapter (real SQLite/Drain3/PyTorch/sklearn),
-the API surface (auth, RBAC, WebSocket), the hallucination verifier, and a seeded
+the API surface (auth, RBAC, WebSocket, feedback, analytics, config), the
+hallucination verifier, the evaluation harness + calibration, and a seeded
 end-to-end anomaly regression test.
 
 ## 📁 Project structure
@@ -194,9 +202,9 @@ sensitive is committed). See [ADR-0006](docs/architecture/adr/0006-security-mode
 | Phase | Scope |
 |-------|-------|
 | **1 — Vertical slice** ✅ | End-to-end path: ingest → parse → detect → explain → alert → verified report → API/WS → live dashboard |
-| **2 — Detection & MLOps** | Transformer variant, full evaluation harness + metrics, MLflow, threshold calibration, BGL/CICIDS adapters, benchmarks |
-| **3 — Full platform** | Remaining 7 console pages, feedback loop + recalibration, streaming metrics |
-| **4 — Hardening & delivery** | Security pass, observability dashboards, full test matrix, release |
+| **2 — Detection & MLOps** ✅ | Transformer variant, evaluation harness + metrics, model comparison, MLflow, threshold calibration, BGL/CICIDS adapters, benchmarks |
+| **3 — Full platform** ✅ | All 8 console pages, analyst feedback loop + recalibration, streaming metrics |
+| **4 — Hardening & delivery** | Security pass, observability dashboards, deployment, release polish |
 
 ## License
 
