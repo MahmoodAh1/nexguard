@@ -9,7 +9,7 @@ import pytest
 
 from nexguard.application.use_cases.ingest_and_parse import IngestAndParse
 from nexguard.domain.entities import Session
-from nexguard.evaluation.harness import run_comparison
+from nexguard.evaluation.harness import run_calibration, run_comparison
 from nexguard.infrastructure.datasets.hdfs import HdfsDatasetSource
 from nexguard.infrastructure.memory.repositories import InMemoryLogRepository
 from nexguard.infrastructure.parsing.drain3_miner import Drain3TemplateMiner
@@ -74,3 +74,14 @@ async def test_comparison_reports_all_models(hdfs_log_path: Path, hdfs_label_pat
     table = result.as_table()
     assert "Model" in table and "Ensemble" in table
     assert result.best_by_f1().name in names
+
+
+async def test_calibration_on_fixture(hdfs_log_path: Path, hdfs_label_path: Path) -> None:
+    sessions = await _sessions(hdfs_log_path, hdfs_label_path)
+    calibration = run_calibration(sessions, lstm_epochs=12, top_k=2, seed=42)
+
+    assert calibration.after.recall == 1.0
+    assert calibration.after.f1 >= 0.9
+    assert 0.0 <= calibration.seq_weight <= 1.0
+    # The chosen threshold is a real operating point in [0, 1].
+    assert 0.0 <= calibration.threshold <= 1.0

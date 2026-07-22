@@ -13,6 +13,11 @@ from dataclasses import dataclass
 from nexguard.domain.entities import Session
 from nexguard.domain.ports import ExperimentTracker
 from nexguard.domain.value_objects import CountVector
+from nexguard.evaluation.calibration import (
+    EnsembleCalibration,
+    Objective,
+    calibrate_ensemble,
+)
 from nexguard.evaluation.evaluator import Evaluator, ModelReport
 from nexguard.infrastructure.detection.ensemble import WeightedEnsemble
 from nexguard.infrastructure.detection.sequence_lstm import LstmSequenceDetector
@@ -160,3 +165,36 @@ def run_comparison(
             )
 
     return ComparisonResult(reports=reports, threshold=threshold)
+
+
+def run_calibration(
+    sessions: Sequence[Session],
+    *,
+    top_k: int = 2,
+    lstm_epochs: int = 15,
+    seed: int = 42,
+    objective: Objective = "f1",
+    target_fpr: float = 0.05,
+) -> EnsembleCalibration:
+    """Train LSTM + IsolationForest, collect component scores, and calibrate the ensemble."""
+    labeled = [s for s in sessions if s.label is not None]
+    if not labeled:
+        raise ValueError("calibration requires labeled sessions")
+    normal = [s for s in labeled if s.label is False]
+    if not normal:
+        raise ValueError("calibration requires normal sessions to train on")
+
+    labels = [bool(s.label) for s in labeled]
+    lstm = LstmSequenceDetector.fit(
+        [s.event_id_sequence() for s in normal],
+        epochs=lstm_epochs,
+        top_k=top_k,
+        seed=seed,
+    )
+    iforest = IsolationForestDetector.fit([_cv(s) for s in normal], seed=seed)
+
+    seq_scores = [lstm.score(s.event_id_sequence()).anomaly_score for s in labeled]
+    stat_scores = [iforest.score(_cv(s)).anomaly_score for s in labeled]
+    return calibrate_ensemble(
+        seq_scores, stat_scores, labels, objective=objective, target_fpr=target_fpr
+    )

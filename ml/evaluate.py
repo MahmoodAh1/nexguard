@@ -67,6 +67,9 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=_DEFAULT_OUT)
     parser.add_argument("--mlflow", action="store_true", help="log runs to MLflow")
     parser.add_argument("--mlflow-uri", default=None, help="MLflow tracking URI")
+    parser.add_argument(
+        "--calibrate", action="store_true", help="calibrate ensemble weights/threshold"
+    )
     args = parser.parse_args()
 
     tracker = None
@@ -88,6 +91,26 @@ def main() -> int:
     )
 
     report = _render(result, args.log)
+
+    if args.calibrate:
+        from nexguard.evaluation.harness import run_calibration
+
+        calibration = run_calibration(sessions, lstm_epochs=args.epochs)
+        report += "\n".join(
+            [
+                "\n## Ensemble Calibration",
+                "",
+                f"- Objective: {calibration.objective}",
+                f"- Chosen: seq_weight={calibration.seq_weight}, "
+                f"stat_weight={calibration.stat_weight}, threshold={calibration.threshold}",
+                f"- Before: P={calibration.before.precision:.3f} "
+                f"R={calibration.before.recall:.3f} F1={calibration.before.f1:.3f}",
+                f"- After:  P={calibration.after.precision:.3f} "
+                f"R={calibration.after.recall:.3f} F1={calibration.after.f1:.3f}",
+                "",
+            ]
+        )
+
     print(report)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(report, encoding="utf-8")
