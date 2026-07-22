@@ -130,17 +130,22 @@ On the bundled, deterministic HDFS fixture (60 normal + 10 anomalous blocks), th
 seeded pipeline achieves — pinned by a **regression test**
 ([`tests/regression`](backend/tests/regression)):
 
-| Metric | Result |
-|--------|--------|
-| Recall (anomalies flagged) | **10 / 10** |
-| False positives | **0 / 60** |
-| Severity of flagged anomalies | High |
-| Determinism | Fixed seeds; reproducible run to run |
+| Model | Precision | Recall | F1 | ROC-AUC | FPR |
+|-------|-----------|--------|----|---------|-----|
+| LSTM (DeepLog) | 1.00 | 1.00 | 1.00 | 1.00 | 0.00 |
+| Transformer | 1.00 | 1.00 | 1.00 | 1.00 | 0.00 |
+| Isolation Forest | 0.14 | 1.00 | 0.25 | 0.50 | 1.00 |
+| **Ensemble** | **1.00** | **1.00** | **1.00** | **1.00** | **0.00** |
+
+Full methodology, operational metrics (latency/throughput/alerts-per-10k),
+calibration, and an **honest reading** of why Isolation Forest is near-random on
+this fixture (its anomalies are *new templates*, which favor the sequence models)
+are in **[`docs/benchmarks.md`](docs/benchmarks.md)**. Reproduce with
+`cd backend && uv run python ../ml/evaluate.py --calibrate`.
 
 > Why HDFS: its logs are naturally session-partitioned by `block_id` with block-level
-> ground-truth labels — exactly the shape a sequence model needs. Full-dataset
-> benchmarks (Precision/Recall/F1/ROC-AUC/PR-AUC, latency, throughput) and model
-> comparison via MLflow are the focus of Phase 2.
+> ground-truth labels — exactly the shape a sequence model needs. The BGL and CICIDS
+> adapters prove the pipeline generalizes to time-windowed logs and network flows.
 
 ## 🧪 Testing
 

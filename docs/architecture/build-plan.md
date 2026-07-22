@@ -36,11 +36,15 @@ positives, `docker compose up` brings the full stack online. Definition of done:
 
 **Gate 1:** the slice runs, tests pass, demoable.
 
-## Phase 2 — Deepen detection & MLOps
-Transformer variant; full evaluation harness (Precision/Recall/F1/ROC-AUC/PR-AUC/
-confusion/FPR/FNR + operational metrics); MLflow tracking; threshold calibration;
-BGL + CICIDS adapters proving the abstractions generalize; benchmarks.
-**Gate 2.**
+## Phase 2 — Deepen detection & MLOps ✅ COMPLETE
+Transformer variant (shared scoring base); full evaluation harness (Precision/
+Recall/F1/ROC-AUC/PR-AUC/confusion/FPR/FNR + operational: latency p50/p95,
+throughput, alerts/10k); model comparison (LSTM/Transformer/IForest/Ensemble);
+MLflow tracking behind an ExperimentTracker port (isolated offline env);
+ensemble weight+threshold calibration with before/after metrics; BGL + CICIDS
+adapters proving the DatasetSource abstraction generalizes; committed benchmarks
+([docs/benchmarks.md](../benchmarks.md)) + reproducible full-dataset download.
+**Gate 2 reached.**
 
 ## Phase 3 — Full platform surface
 The remaining pages (Alert Explorer, Incident Reports, Log Explorer, Detection
