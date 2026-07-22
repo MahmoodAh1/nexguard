@@ -13,7 +13,14 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from nexguard.domain.auth import TokenPair
-from nexguard.domain.entities import Alert, IncidentReport, User
+from nexguard.domain.entities import (
+    Alert,
+    CalibrationSnapshot,
+    Feedback,
+    FeedbackLabel,
+    IncidentReport,
+    User,
+)
 
 
 class LoginRequest(BaseModel):
@@ -117,6 +124,65 @@ class DetectionRunOut(BaseModel):
             alerted=alert is not None,
             alert=AlertDetailOut.from_entity(alert) if alert is not None else None,
         )
+
+
+class FeedbackRequest(BaseModel):
+    label: FeedbackLabel
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class FeedbackOut(BaseModel):
+    id: UUID
+    alert_id: UUID
+    analyst_id: UUID
+    label: str
+    note: str | None
+    created_at: datetime
+
+    @classmethod
+    def from_entity(cls, feedback: Feedback) -> FeedbackOut:
+        return cls(
+            id=feedback.id,
+            alert_id=feedback.alert_id,
+            analyst_id=feedback.analyst_id,
+            label=feedback.label.value,
+            note=feedback.note,
+            created_at=feedback.created_at,
+        )
+
+
+class CalibrationSnapshotOut(BaseModel):
+    id: UUID
+    threshold: float
+    seq_weight: float
+    stat_weight: float
+    feedback_count: int
+    precision_before: float
+    recall_before: float
+    precision_after: float
+    recall_after: float
+    created_at: datetime
+
+    @classmethod
+    def from_entity(cls, snapshot: CalibrationSnapshot) -> CalibrationSnapshotOut:
+        return cls(
+            id=snapshot.id,
+            threshold=round(snapshot.threshold, 4),
+            seq_weight=snapshot.seq_weight,
+            stat_weight=snapshot.stat_weight,
+            feedback_count=snapshot.feedback_count,
+            precision_before=round(snapshot.precision_before, 4),
+            recall_before=round(snapshot.recall_before, 4),
+            precision_after=round(snapshot.precision_after, 4),
+            recall_after=round(snapshot.recall_after, 4),
+            created_at=snapshot.created_at,
+        )
+
+
+class FeedbackSummaryOut(BaseModel):
+    total: int
+    counts: dict[str, int]
+    latest_calibration: CalibrationSnapshotOut | None
 
 
 class HealthOut(BaseModel):

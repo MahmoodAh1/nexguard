@@ -15,7 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from nexguard.application.use_cases.auth import Authenticate, CreateUser
 from nexguard.application.use_cases.detect_anomalies import DetectAnomalies
+from nexguard.application.use_cases.feedback import Recalibrate, SubmitFeedback
 from nexguard.application.use_cases.generate_report import GenerateReport
+from nexguard.config.runtime import RuntimeConfig
 from nexguard.config.settings import Settings
 from nexguard.domain.ports import EventBus, LLMProvider, PasswordHasher, TokenService
 from nexguard.infrastructure.bus.memory_bus import InMemoryEventBus
@@ -23,8 +25,11 @@ from nexguard.infrastructure.bus.redis_bus import RedisEventBus
 from nexguard.infrastructure.db.repositories import (
     SqlAlchemyAlertRepository,
     SqlAlchemyAuditLog,
+    SqlAlchemyCalibrationRepository,
+    SqlAlchemyFeedbackRepository,
     SqlAlchemyLogRepository,
     SqlAlchemyReportRepository,
+    SqlAlchemyTemplateRepository,
     SqlAlchemyUserRepository,
 )
 from nexguard.infrastructure.db.session import Database
@@ -49,11 +54,14 @@ logger = get_logger("nexguard.container")
 
 @dataclass(frozen=True)
 class DetectorBundle:
-    """The trained detection stack, loaded from artifacts."""
+    """The trained detection stack, loaded from artifacts.
+
+    The ensemble is built per detection from the mutable RuntimeConfig, so
+    recalibration / config changes take effect without reloading models.
+    """
 
     sequence: LstmSequenceDetector
     statistical: IsolationForestDetector
-    ensemble: WeightedEnsemble
     explainer: Explainer
 
 
@@ -73,6 +81,7 @@ class Container:
         )
         self.llm: LLMProvider = _build_llm(settings)
         self.verifier = EvidenceVerifier()
+        self.runtime = RuntimeConfig.from_settings(settings)
         self._detectors: DetectorBundle | None = None
 
     # ── lifecycle ──
@@ -97,11 +106,6 @@ class Container:
         self._detectors = DetectorBundle(
             sequence=LstmSequenceDetector.load(lstm_path),
             statistical=IsolationForestDetector.load(iforest_path),
-            ensemble=WeightedEnsemble(
-                seq_weight=self.settings.ensemble_seq_weight,
-                stat_weight=self.settings.ensemble_stat_weight,
-                threshold=self.settings.alert_threshold,
-            ),
             explainer=Explainer(),
         )
         logger.info("detectors_loaded", artifact_dir=str(directory))
@@ -131,9 +135,29 @@ class Container:
     def audit(self, session: AsyncSession) -> SqlAlchemyAuditLog:
         return SqlAlchemyAuditLog(session)
 
+    def feedback(self, session: AsyncSession) -> SqlAlchemyFeedbackRepository:
+        return SqlAlchemyFeedbackRepository(session)
+
+    def calibration(self, session: AsyncSession) -> SqlAlchemyCalibrationRepository:
+        return SqlAlchemyCalibrationRepository(session)
+
+    def templates(self, session: AsyncSession) -> SqlAlchemyTemplateRepository:
+        return SqlAlchemyTemplateRepository(session)
+
     # ── use cases ──
     def authenticate(self, session: AsyncSession) -> Authenticate:
         return Authenticate(self.users(session), self.hasher, self.tokens)
+
+    def submit_feedback(self, session: AsyncSession) -> SubmitFeedback:
+        return SubmitFeedback(self.feedback(session), self.alerts(session))
+
+    def recalibrate(self, session: AsyncSession) -> Recalibrate:
+        return Recalibrate(
+            self.feedback(session),
+            self.alerts(session),
+            self.calibration(session),
+            self.runtime,
+        )
 
     def create_user(self, session: AsyncSession) -> CreateUser:
         return CreateUser(self.users(session), self.hasher)
@@ -155,7 +179,11 @@ class Container:
         return DetectAnomalies(
             sequence_detector=self._detectors.sequence,
             statistical_detector=self._detectors.statistical,
-            ensemble=self._detectors.ensemble,
+            ensemble=WeightedEnsemble(
+                seq_weight=self.runtime.seq_weight,
+                stat_weight=self.runtime.stat_weight,
+                threshold=self.runtime.threshold,
+            ),
             explainer=self._detectors.explainer,
             alert_repo=self.alerts(session),
             event_bus=self.event_bus,

@@ -202,3 +202,23 @@ class Feedback:
     note: str | None = None
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=_now)
+
+
+@dataclass(slots=True)
+class CalibrationSnapshot:
+    """A recalibration outcome: the operating point + before/after quality.
+
+    Produced when analyst feedback is folded back in. Both the before and after
+    precision/recall are recorded so the improvement is auditable.
+    """
+
+    threshold: float
+    seq_weight: float
+    stat_weight: float
+    feedback_count: int
+    precision_before: float
+    recall_before: float
+    precision_after: float
+    recall_after: float
+    id: UUID = field(default_factory=uuid4)
+    created_at: datetime = field(default_factory=_now)

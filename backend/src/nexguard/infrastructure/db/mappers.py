@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from nexguard.domain.entities import (
     Alert,
     AlertStatus,
+    CalibrationSnapshot,
     Feedback,
     FeedbackLabel,
     IncidentReport,
@@ -25,6 +26,7 @@ from nexguard.domain.report import IncidentReportPayload
 from nexguard.domain.value_objects import EventId, Score, Severity
 from nexguard.infrastructure.db.models import (
     AlertRow,
+    CalibrationSnapshotRow,
     FeedbackRow,
     IncidentReportRow,
     LogEventRow,
@@ -192,5 +194,36 @@ def feedback_to_entity(row: FeedbackRow) -> Feedback:
         analyst_id=row.analyst_id,
         label=FeedbackLabel(row.label),
         note=row.note,
+        created_at=_as_utc(row.created_at) or row.created_at,
+    )
+
+
+# ── Calibration snapshot ──
+def calibration_to_row(snapshot: CalibrationSnapshot) -> CalibrationSnapshotRow:
+    return CalibrationSnapshotRow(
+        id=snapshot.id,
+        threshold=snapshot.threshold,
+        seq_weight=snapshot.seq_weight,
+        stat_weight=snapshot.stat_weight,
+        feedback_count=snapshot.feedback_count,
+        precision_before=snapshot.precision_before,
+        recall_before=snapshot.recall_before,
+        precision_after=snapshot.precision_after,
+        recall_after=snapshot.recall_after,
+        created_at=snapshot.created_at,
+    )
+
+
+def calibration_to_entity(row: CalibrationSnapshotRow) -> CalibrationSnapshot:
+    return CalibrationSnapshot(
+        id=row.id,
+        threshold=row.threshold,
+        seq_weight=row.seq_weight,
+        stat_weight=row.stat_weight,
+        feedback_count=row.feedback_count,
+        precision_before=row.precision_before,
+        recall_before=row.recall_before,
+        precision_after=row.precision_after,
+        recall_after=row.recall_after,
         created_at=_as_utc(row.created_at) or row.created_at,
     )

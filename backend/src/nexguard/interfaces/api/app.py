@@ -18,7 +18,15 @@ from nexguard.config.settings import Settings, get_settings
 from nexguard.interfaces.api.container import Container
 from nexguard.interfaces.api.errors import register_exception_handlers
 from nexguard.interfaces.api.middleware import register_middleware
-from nexguard.interfaces.api.routers import alerts, auth, detection, health, metrics, ws
+from nexguard.interfaces.api.routers import (
+    alerts,
+    auth,
+    detection,
+    feedback,
+    health,
+    metrics,
+    ws,
+)
 from nexguard.observability.logging import configure_logging
 
 
@@ -65,6 +73,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         auth.router,
         alerts.router,
         detection.router,
+        feedback.router,
         metrics.router,
         ws.router,
     ):

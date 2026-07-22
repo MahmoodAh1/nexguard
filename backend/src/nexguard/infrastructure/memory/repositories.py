@@ -12,6 +12,7 @@ from uuid import UUID
 
 from nexguard.domain.entities import (
     Alert,
+    CalibrationSnapshot,
     Feedback,
     IncidentReport,
     Session,
@@ -114,6 +115,30 @@ class InMemoryFeedbackRepository:
 
     async def list_for_alert(self, alert_id: UUID) -> list[Feedback]:
         return [f for f in self._items if f.alert_id == alert_id]
+
+    async def all(self) -> list[Feedback]:
+        return list(reversed(self._items))
+
+    async def count_by_label(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for feedback in self._items:
+            counts[feedback.label.value] = counts.get(feedback.label.value, 0) + 1
+        return counts
+
+
+class InMemoryCalibrationRepository:
+    def __init__(self) -> None:
+        self._items: list[CalibrationSnapshot] = []
+
+    async def add(self, snapshot: CalibrationSnapshot) -> CalibrationSnapshot:
+        self._items.append(snapshot)
+        return snapshot
+
+    async def latest(self) -> CalibrationSnapshot | None:
+        return self._items[-1] if self._items else None
+
+    async def list(self, *, limit: int = 50) -> list[CalibrationSnapshot]:
+        return list(reversed(self._items))[:limit]
 
 
 class InMemoryTemplateRepository:

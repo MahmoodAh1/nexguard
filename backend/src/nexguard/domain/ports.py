@@ -25,6 +25,7 @@ from nexguard.domain.detection import (
 )
 from nexguard.domain.entities import (
     Alert,
+    CalibrationSnapshot,
     Feedback,
     IncidentReport,
     Session,
@@ -80,6 +81,15 @@ class UserRepository(Protocol):
 class FeedbackRepository(Protocol):
     async def add(self, feedback: Feedback) -> Feedback: ...
     async def list_for_alert(self, alert_id: UUID) -> list[Feedback]: ...
+    async def all(self) -> list[Feedback]: ...
+    async def count_by_label(self) -> dict[str, int]: ...
+
+
+@runtime_checkable
+class CalibrationRepository(Protocol):
+    async def add(self, snapshot: CalibrationSnapshot) -> CalibrationSnapshot: ...
+    async def latest(self) -> CalibrationSnapshot | None: ...
+    async def list(self, *, limit: int = 50) -> list[CalibrationSnapshot]: ...
 
 
 @runtime_checkable

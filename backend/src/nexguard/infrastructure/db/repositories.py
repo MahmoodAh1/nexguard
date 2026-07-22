@@ -11,12 +11,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from nexguard.domain.entities import (
     Alert,
+    CalibrationSnapshot,
     Feedback,
     IncidentReport,
     Session,
@@ -27,6 +28,7 @@ from nexguard.infrastructure.db import mappers
 from nexguard.infrastructure.db.models import (
     AlertRow,
     AuditLogRow,
+    CalibrationSnapshotRow,
     FeedbackRow,
     IncidentReportRow,
     SessionRow,
@@ -159,6 +161,44 @@ class SqlAlchemyFeedbackRepository:
         )
         rows = (await self._session.execute(stmt)).scalars().all()
         return [mappers.feedback_to_entity(row) for row in rows]
+
+    async def all(self) -> list[Feedback]:
+        stmt = select(FeedbackRow).order_by(FeedbackRow.created_at.desc())
+        rows = (await self._session.execute(stmt)).scalars().all()
+        return [mappers.feedback_to_entity(row) for row in rows]
+
+    async def count_by_label(self) -> dict[str, int]:
+        stmt = select(FeedbackRow.label, func.count()).group_by(FeedbackRow.label)
+        rows = (await self._session.execute(stmt)).all()
+        return {str(label): int(count) for label, count in rows}
+
+
+class SqlAlchemyCalibrationRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def add(self, snapshot: CalibrationSnapshot) -> CalibrationSnapshot:
+        self._session.add(mappers.calibration_to_row(snapshot))
+        await self._session.flush()
+        return snapshot
+
+    async def latest(self) -> CalibrationSnapshot | None:
+        stmt = (
+            select(CalibrationSnapshotRow)
+            .order_by(CalibrationSnapshotRow.created_at.desc())
+            .limit(1)
+        )
+        row = (await self._session.execute(stmt)).scalar_one_or_none()
+        return mappers.calibration_to_entity(row) if row else None
+
+    async def list(self, *, limit: int = 50) -> list[CalibrationSnapshot]:
+        stmt = (
+            select(CalibrationSnapshotRow)
+            .order_by(CalibrationSnapshotRow.created_at.desc())
+            .limit(limit)
+        )
+        rows = (await self._session.execute(stmt)).scalars().all()
+        return [mappers.calibration_to_entity(row) for row in rows]
 
 
 class SqlAlchemyTemplateRepository:

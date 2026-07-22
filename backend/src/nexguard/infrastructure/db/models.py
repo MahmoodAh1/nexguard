@@ -152,3 +152,18 @@ class AuditLogRow(Base):
     ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
     meta: Mapped[dict[str, object]] = mapped_column("metadata", JsonType, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
+
+
+class CalibrationSnapshotRow(Base):
+    __tablename__ = "calibration_snapshots"
+
+    id: Mapped[UUID] = mapped_column(Uuid(), primary_key=True, default=uuid4)
+    threshold: Mapped[float] = mapped_column(Float)
+    seq_weight: Mapped[float] = mapped_column(Float)
+    stat_weight: Mapped[float] = mapped_column(Float)
+    feedback_count: Mapped[int] = mapped_column(Integer)
+    precision_before: Mapped[float] = mapped_column(Float)
+    recall_before: Mapped[float] = mapped_column(Float)
+    precision_after: Mapped[float] = mapped_column(Float)
+    recall_after: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
