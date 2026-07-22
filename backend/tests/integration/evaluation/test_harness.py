@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,24 @@ from nexguard.infrastructure.parsing.drain3_miner import Drain3TemplateMiner
 pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
+class _RecordingTracker:
+    """A fake ExperimentTracker that captures what the harness logs."""
+
+    def __init__(self) -> None:
+        self.runs: list[tuple[str, dict[str, float]]] = []
+
+    def log_run(
+        self,
+        *,
+        run_name: str,
+        params: Mapping[str, object],
+        metrics: Mapping[str, float],
+        tags: Mapping[str, str] | None = None,
+        artifacts: Sequence[Path] = (),
+    ) -> None:
+        self.runs.append((run_name, dict(metrics)))
+
+
 async def _sessions(log: Path, labels: Path) -> list[Session]:
     repo = InMemoryLogRepository()
     use_case = IngestAndParse(Drain3TemplateMiner(), repo)
@@ -24,10 +43,22 @@ async def _sessions(log: Path, labels: Path) -> list[Session]:
 
 async def test_comparison_reports_all_models(hdfs_log_path: Path, hdfs_label_path: Path) -> None:
     sessions = await _sessions(hdfs_log_path, hdfs_label_path)
-    result = run_comparison(sessions, lstm_epochs=12, transformer_epochs=30, top_k=2, seed=42)
+    tracker = _RecordingTracker()
+    result = run_comparison(
+        sessions,
+        lstm_epochs=12,
+        transformer_epochs=30,
+        top_k=2,
+        seed=42,
+        tracker=tracker,
+    )
 
     names = {report.name for report in result.reports}
     assert names == {"LSTM", "Transformer", "IsolationForest", "Ensemble"}
+
+    # The tracker received a run per model, each with quality metrics.
+    assert {run_name for run_name, _ in tracker.runs} == names
+    assert all("precision" in metrics for _, metrics in tracker.runs)
 
     ensemble = next(r for r in result.reports if r.name == "Ensemble")
     assert ensemble.metrics.recall >= 0.9

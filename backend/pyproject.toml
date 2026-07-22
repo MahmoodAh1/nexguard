@@ -41,6 +41,10 @@ dependencies = [
 [project.optional-dependencies]
 # Production database driver (SQLite is the dev default).
 postgres = ["asyncpg>=0.30"]
+# NOTE: MLflow is intentionally NOT a backend dependency — it needs cachetools>=5
+# while drain3 (a serving dependency) pins cachetools<5. Offline MLOps therefore
+# runs in its own environment; see ml/requirements.txt. The MlflowExperimentTracker
+# adapter sits behind the ExperimentTracker port so the package never imports mlflow.
 
 # Developer/CI tooling as a PEP 735 dependency group — uv installs it by default,
 # so `uv run` keeps the environment stable across invocations.
@@ -123,7 +127,7 @@ explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 # Third-party libs without type stubs.
-module = ["drain3.*", "sklearn.*", "torch.*", "scipy.*", "joblib.*"]
+module = ["drain3.*", "sklearn.*", "torch.*", "scipy.*", "joblib.*", "mlflow.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

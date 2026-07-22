@@ -1,0 +1,14 @@
+# Offline MLOps environment for NexGuard (separate from the serving env).
+#
+# MLflow requires cachetools>=5, while drain3 (a serving dependency) pins
+# cachetools<5 — an unresolvable conflict in a single environment. The two
+# concerns are therefore deliberately isolated:
+#
+#   python -m venv .ml-venv && source .ml-venv/bin/activate   # (or on Windows: .ml-venv\Scripts\activate)
+#   pip install -e ../backend --no-deps        # the nexguard package (evaluation library)
+#   pip install -r requirements.txt            # mlflow + the serving deps it tolerates
+#
+# The MlflowExperimentTracker sits behind the ExperimentTracker port, so the
+# nexguard package itself never imports mlflow.
+
+mlflow>=2.18

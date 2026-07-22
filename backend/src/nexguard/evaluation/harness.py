@@ -11,6 +11,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from nexguard.domain.entities import Session
+from nexguard.domain.ports import ExperimentTracker
 from nexguard.domain.value_objects import CountVector
 from nexguard.evaluation.evaluator import Evaluator, ModelReport
 from nexguard.infrastructure.detection.ensemble import WeightedEnsemble
@@ -84,6 +85,8 @@ def run_comparison(
     seq_weight: float = 0.6,
     stat_weight: float = 0.4,
     seed: int = 42,
+    tracker: ExperimentTracker | None = None,
+    dataset: str = "hdfs",
 ) -> ComparisonResult:
     labeled = [s for s in sessions if s.label is not None]
     if not labeled:
@@ -133,4 +136,27 @@ def run_comparison(
             ),
         ),
     ]
+
+    if tracker is not None:
+        for report in reports:
+            tracker.log_run(
+                run_name=report.name,
+                params={
+                    "model": report.name,
+                    "dataset": dataset,
+                    "threshold": threshold,
+                    "top_k": top_k,
+                    "seed": seed,
+                    "train_normal_sessions": len(normal),
+                },
+                metrics={
+                    **report.metrics.as_dict(),
+                    "p50_latency_ms": report.latency_ms_p50,
+                    "p95_latency_ms": report.latency_ms_p95,
+                    "throughput_per_sec": report.throughput_per_sec,
+                    "alerts_per_10k": report.alerts_per_10k,
+                },
+                tags={"dataset": dataset, "phase": "model-comparison"},
+            )
+
     return ComparisonResult(reports=reports, threshold=threshold)

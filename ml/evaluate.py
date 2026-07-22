@@ -65,7 +65,18 @@ def main() -> int:
     parser.add_argument("--epochs", type=int, default=15)
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--out", type=Path, default=_DEFAULT_OUT)
+    parser.add_argument("--mlflow", action="store_true", help="log runs to MLflow")
+    parser.add_argument("--mlflow-uri", default=None, help="MLflow tracking URI")
     args = parser.parse_args()
+
+    tracker = None
+    if args.mlflow:
+        # Imported lazily: mlflow lives in the offline env only (see ml/requirements.txt).
+        from nexguard.infrastructure.tracking.mlflow_tracker import (
+            MlflowExperimentTracker,
+        )
+
+        tracker = MlflowExperimentTracker(tracking_uri=args.mlflow_uri)
 
     sessions = asyncio.run(_ingest(args.log, args.labels))
     result = run_comparison(
@@ -73,6 +84,7 @@ def main() -> int:
         lstm_epochs=args.epochs,
         transformer_epochs=args.epochs * 2,
         threshold=args.threshold,
+        tracker=tracker,
     )
 
     report = _render(result, args.log)

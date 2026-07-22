@@ -8,7 +8,8 @@ inheritance — it simply has to match the shape.
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Iterator, Sequence
+from collections.abc import AsyncIterator, Iterator, Mapping, Sequence
+from pathlib import Path
 from typing import Protocol, TypeVar, runtime_checkable
 from uuid import UUID
 
@@ -159,3 +160,22 @@ class PasswordHasher(Protocol):
 class TokenService(Protocol):
     def issue(self, user: User) -> TokenPair: ...
     def decode(self, token: str) -> Claims: ...
+
+
+@runtime_checkable
+class ExperimentTracker(Protocol):
+    """Records an ML experiment run (datasets, params, metrics, artifacts).
+
+    Abstracts MLflow so the evaluation harness never imports it directly; a
+    no-op adapter keeps offline runs working when tracking is disabled.
+    """
+
+    def log_run(
+        self,
+        *,
+        run_name: str,
+        params: Mapping[str, object],
+        metrics: Mapping[str, float],
+        tags: Mapping[str, str] | None = None,
+        artifacts: Sequence[Path] = (),
+    ) -> None: ...
