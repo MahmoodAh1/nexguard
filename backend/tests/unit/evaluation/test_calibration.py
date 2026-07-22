@@ -34,15 +34,11 @@ def test_calibration_improves_a_miscalibrated_default() -> None:
     assert calibration.before.f1 == pytest.approx(0.0)  # ranks the wrong class higher
     assert calibration.after.f1 == 1.0
     assert calibration.after.f1 > calibration.before.f1
-    assert (
-        calibration.seq_weight >= 0.6
-    )  # learned to down-weight the misleading detector
+    assert calibration.seq_weight >= 0.6  # learned to down-weight the misleading detector
 
 
 def test_target_fpr_objective_caps_false_positives() -> None:
-    calibration = calibrate_ensemble(
-        _SEQ, _STAT, _LABELS, objective="target_fpr", target_fpr=0.0
-    )
+    calibration = calibrate_ensemble(_SEQ, _STAT, _LABELS, objective="target_fpr", target_fpr=0.0)
     assert calibration.after.false_positive_rate == 0.0
     assert calibration.after.recall == 1.0
 
