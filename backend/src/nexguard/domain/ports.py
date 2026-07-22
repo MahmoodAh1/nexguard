@@ -44,9 +44,7 @@ class LogRepository(Protocol):
     async def get_session_by_external_id(
         self, dataset: str, external_id: str
     ) -> Session | None: ...
-    async def list_sessions(
-        self, *, limit: int = 100, offset: int = 0
-    ) -> list[Session]: ...
+    async def list_sessions(self, *, limit: int = 100, offset: int = 0) -> list[Session]: ...
 
 
 @runtime_checkable

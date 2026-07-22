@@ -38,9 +38,7 @@ class TestArgon2Hasher:
 
 
 def _user() -> User:
-    return User(
-        email="analyst@nexguard.local", password_hash="x", role=UserRole.ANALYST
-    )
+    return User(email="analyst@nexguard.local", password_hash="x", role=UserRole.ANALYST)
 
 
 class TestJwtTokenService:
@@ -78,9 +76,7 @@ class TestJwtTokenService:
     def test_wrong_secret_rejected(self) -> None:
         pair = JwtTokenService(secret=SECRET).issue(_user())
         with pytest.raises(AuthenticationError):
-            JwtTokenService(secret="a-totally-different-secret-value").decode(
-                pair.access_token
-            )
+            JwtTokenService(secret="a-totally-different-secret-value").decode(pair.access_token)
 
 
 class TestRbac:

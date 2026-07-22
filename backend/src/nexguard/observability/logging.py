@@ -38,9 +38,7 @@ def configure_logging(*, level: str = "INFO", json_output: bool = False) -> None
         cache_logger_on_first_use=True,
     )
 
-    logging.basicConfig(
-        format="%(message)s", stream=sys.stderr, level=log_level, force=True
-    )
+    logging.basicConfig(format="%(message)s", stream=sys.stderr, level=log_level, force=True)
 
 
 def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:

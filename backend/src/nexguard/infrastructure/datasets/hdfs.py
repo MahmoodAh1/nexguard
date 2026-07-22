@@ -28,9 +28,7 @@ _DATASET = "hdfs"
 class HdfsDatasetSource:
     """Reads an HDFS log file (+ optional label CSV) into labeled sessions."""
 
-    def __init__(
-        self, log_path: str | Path, label_path: str | Path | None = None
-    ) -> None:
+    def __init__(self, log_path: str | Path, label_path: str | Path | None = None) -> None:
         self._log_path = Path(log_path)
         self._label_path = Path(label_path) if label_path else None
 
@@ -77,9 +75,7 @@ class HdfsDatasetSource:
         if not match:
             return ""
         try:
-            moment = datetime.strptime(
-                f"{match.group(1)} {match.group(2)}", "%y%m%d %H%M%S"
-            )
+            moment = datetime.strptime(f"{match.group(1)} {match.group(2)}", "%y%m%d %H%M%S")
         except ValueError:
             return ""
         return moment.replace(tzinfo=UTC).isoformat()

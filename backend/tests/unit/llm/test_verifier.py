@@ -64,9 +64,7 @@ def test_fabricated_timestamp_is_rejected(alert_session: tuple[Session, Alert]) 
         alert_id=alert.id,
         model="x",
         payload=_payload(
-            timeline=[
-                TimelineEntry(timestamp="1999-01-01T00:00:00+00:00", description="d")
-            ]
+            timeline=[TimelineEntry(timestamp="1999-01-01T00:00:00+00:00", description="d")]
         ),
     )
     result = EvidenceVerifier().verify(report, _index(session, alert))
@@ -101,9 +99,7 @@ def test_fabricated_component_is_rejected(alert_session: tuple[Session, Alert]) 
 def test_missing_payload_is_rejected(alert_session: tuple[Session, Alert]) -> None:
     _, alert = alert_session
     report = IncidentReport(alert_id=alert.id, model="x", payload=None)
-    result = EvidenceVerifier().verify(
-        report, EvidenceIndex(frozenset(), frozenset(), frozenset())
-    )
+    result = EvidenceVerifier().verify(report, EvidenceIndex(frozenset(), frozenset(), frozenset()))
     assert result.is_valid is False
     assert result.reasons == ("report has no payload",)
 

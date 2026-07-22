@@ -14,9 +14,7 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 async def login(
     body: LoginRequest, request: Request, container: ContainerDep, session: SessionDep
 ) -> TokenResponse:
-    pair = await container.authenticate(session).login(
-        email=body.email, password=body.password
-    )
+    pair = await container.authenticate(session).login(email=body.email, password=body.password)
     await container.audit(session).record(
         actor_id=None,
         action="login",

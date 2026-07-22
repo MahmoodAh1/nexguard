@@ -105,9 +105,7 @@ class TimeRange:
 
     def __post_init__(self) -> None:
         if self.end < self.start:
-            raise ValueError(
-                f"TimeRange end {self.end!r} precedes start {self.start!r}"
-            )
+            raise ValueError(f"TimeRange end {self.end!r} precedes start {self.start!r}")
 
     @property
     def duration(self) -> timedelta:
@@ -137,14 +135,11 @@ class CountVector:
     def __post_init__(self) -> None:
         if len(self.vocab) != len(self.values):
             raise ValueError(
-                f"CountVector vocab/values length mismatch: "
-                f"{len(self.vocab)} != {len(self.values)}"
+                f"CountVector vocab/values length mismatch: {len(self.vocab)} != {len(self.values)}"
             )
 
     @classmethod
-    def from_counts(
-        cls, counts: Mapping[EventId, float], vocab: Sequence[EventId]
-    ) -> CountVector:
+    def from_counts(cls, counts: Mapping[EventId, float], vocab: Sequence[EventId]) -> CountVector:
         ordered_vocab = tuple(vocab)
         values = tuple(float(counts.get(event_id, 0)) for event_id in ordered_vocab)
         return cls(vocab=ordered_vocab, values=values)

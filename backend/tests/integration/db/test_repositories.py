@@ -50,9 +50,7 @@ def _evidence(external_id: str, severity: Severity) -> Evidence:
             threshold=0.5,
             severity=severity,
         ),
-        provenance=Provenance(
-            session_external_id=external_id, dataset="hdfs", event_count=2
-        ),
+        provenance=Provenance(session_external_id=external_id, dataset="hdfs", event_count=2),
     )
 
 
@@ -80,9 +78,7 @@ async def test_session_round_trip(database: Database) -> None:
     assert fetched.events[0].timestamp == ts
 
     async with database.session() as s:
-        by_ext = await SqlAlchemyLogRepository(s).get_session_by_external_id(
-            "hdfs", "blk_-1"
-        )
+        by_ext = await SqlAlchemyLogRepository(s).get_session_by_external_id("hdfs", "blk_-1")
     assert by_ext is not None and by_ext.id == session.id
 
 
@@ -153,9 +149,7 @@ async def test_report_persist_and_fetch_by_alert(database: Database) -> None:
         confidence="medium",
         recommended_investigation_steps=["look"],
     )
-    report = IncidentReport(
-        alert_id=alert.id, model="stub", payload=payload, verified=True
-    )
+    report = IncidentReport(alert_id=alert.id, model="stub", payload=payload, verified=True)
     async with database.session() as s:
         await SqlAlchemyReportRepository(s).add(report)
 

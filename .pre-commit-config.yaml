@@ -1,0 +1,39 @@
+# Pre-commit hooks for NexGuard. Install with:  pre-commit install
+# Runs the same lint/format/type gates as CI, locally, before each commit.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^backend/migrations/versions/
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # Backend: ruff (lint + format) and mypy via the project's own uv environment.
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check (backend)
+        entry: bash -c 'cd backend && uv run ruff check --fix .'
+        language: system
+        types_or: [python]
+        pass_filenames: false
+
+      - id: ruff-format
+        name: ruff format (backend)
+        entry: bash -c 'cd backend && uv run ruff format .'
+        language: system
+        types_or: [python]
+        pass_filenames: false
+
+      - id: mypy
+        name: mypy --strict (backend)
+        entry: bash -c 'cd backend && uv run mypy'
+        language: system
+        types_or: [python]
+        pass_filenames: false

@@ -15,9 +15,7 @@ from nexguard.domain.entities import Session
 from nexguard.domain.evidence import Evidence
 
 # Param keys whose values we treat as host/component identifiers worth verifying.
-_HOSTLIKE_KEYS = re.compile(
-    r"(host|node|ip|addr|src|dst|component|service)", re.IGNORECASE
-)
+_HOSTLIKE_KEYS = re.compile(r"(host|node|ip|addr|src|dst|component|service)", re.IGNORECASE)
 
 
 @dataclass(frozen=True, slots=True)

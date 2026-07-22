@@ -39,6 +39,4 @@ async def test_stub_rejects_unknown_schema(
         value: int
 
     with pytest.raises(NotImplementedError):
-        await StubLLMProvider().complete_json(
-            build_report_prompt(alert, session), Other
-        )
+        await StubLLMProvider().complete_json(build_report_prompt(alert, session), Other)

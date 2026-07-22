@@ -32,18 +32,14 @@ def _cv(counts: list[float]) -> CountVector:
 
 def _normal_vectors(n: int = 120, seed: int = 0) -> list[CountVector]:
     rng = np.random.default_rng(seed)
-    return [
-        _cv(list(rng.multinomial(15, _NORMAL_PROBS).astype(float))) for _ in range(n)
-    ]
+    return [_cv(list(rng.multinomial(15, _NORMAL_PROBS).astype(float))) for _ in range(n)]
 
 
 _TEMPLATES = {1: "allocateBlock", 5: "addStoredBlock"}
 
 
 def test_outlier_scores_higher_than_normal() -> None:
-    detector = IsolationForestDetector.fit(
-        _normal_vectors(), templates=_TEMPLATES, seed=42
-    )
+    detector = IsolationForestDetector.fit(_normal_vectors(), templates=_TEMPLATES, seed=42)
     normal = detector.score(_cv([1, 4, 4, 3, 3]))
     # Composition shifted heavily onto the normally-rare event 1.
     outlier = detector.score(_cv([12, 1, 1, 0, 1]))
@@ -55,9 +51,7 @@ def test_outlier_scores_higher_than_normal() -> None:
 
 
 def test_attribution_identifies_the_deviating_template() -> None:
-    detector = IsolationForestDetector.fit(
-        _normal_vectors(), templates=_TEMPLATES, seed=42
-    )
+    detector = IsolationForestDetector.fit(_normal_vectors(), templates=_TEMPLATES, seed=42)
     outlier = detector.score(_cv([12, 1, 1, 0, 1]))
 
     assert outlier.important_features  # non-empty
@@ -73,9 +67,7 @@ def test_empty_training_set_rejected() -> None:
 
 
 def test_save_and_load_preserves_scores(tmp_path: Path) -> None:
-    detector = IsolationForestDetector.fit(
-        _normal_vectors(), templates=_TEMPLATES, seed=42
-    )
+    detector = IsolationForestDetector.fit(_normal_vectors(), templates=_TEMPLATES, seed=42)
     sample = _cv([12, 1, 1, 0, 1])
     before = detector.score(sample).anomaly_score
 

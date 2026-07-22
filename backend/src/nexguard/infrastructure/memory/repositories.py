@@ -31,9 +31,7 @@ class InMemoryLogRepository:
     async def get_session(self, session_id: UUID) -> Session | None:
         return self._sessions.get(session_id)
 
-    async def get_session_by_external_id(
-        self, dataset: str, external_id: str
-    ) -> Session | None:
+    async def get_session_by_external_id(self, dataset: str, external_id: str) -> Session | None:
         return next(
             (
                 s
@@ -43,12 +41,8 @@ class InMemoryLogRepository:
             None,
         )
 
-    async def list_sessions(
-        self, *, limit: int = 100, offset: int = 0
-    ) -> list[Session]:
-        ordered = sorted(
-            self._sessions.values(), key=lambda s: s.created_at, reverse=True
-        )
+    async def list_sessions(self, *, limit: int = 100, offset: int = 0) -> list[Session]:
+        ordered = sorted(self._sessions.values(), key=lambda s: s.created_at, reverse=True)
         return ordered[offset : offset + limit]
 
 
@@ -75,9 +69,7 @@ class InMemoryAlertRepository:
         limit: int = 100,
         offset: int = 0,
     ) -> list[Alert]:
-        ordered = sorted(
-            self._alerts.values(), key=lambda a: a.created_at, reverse=True
-        )
+        ordered = sorted(self._alerts.values(), key=lambda a: a.created_at, reverse=True)
         if severity is not None:
             ordered = [a for a in ordered if a.severity.value == severity]
         if status is not None:

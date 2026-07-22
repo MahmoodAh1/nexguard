@@ -42,12 +42,8 @@ class JwtTokenService:
     def issue(self, user: User) -> TokenPair:
         now = int(time.time())
         access = self._encode(user, kind=_ACCESS, issued_at=now, ttl=self._access_ttl)
-        refresh = self._encode(
-            user, kind=_REFRESH, issued_at=now, ttl=self._refresh_ttl
-        )
-        return TokenPair(
-            access_token=access, refresh_token=refresh, expires_in=self._access_ttl
-        )
+        refresh = self._encode(user, kind=_REFRESH, issued_at=now, ttl=self._refresh_ttl)
+        return TokenPair(access_token=access, refresh_token=refresh, expires_in=self._access_ttl)
 
     def decode(self, token: str) -> Claims:
         try:

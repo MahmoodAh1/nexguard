@@ -22,16 +22,12 @@ class InMemoryEventBus:
     """Asyncio-queue-backed pub/sub for a single process."""
 
     def __init__(self) -> None:
-        self._subscribers: dict[str, list[asyncio.Queue[dict[str, object]]]] = (
-            defaultdict(list)
-        )
+        self._subscribers: dict[str, list[asyncio.Queue[dict[str, object]]]] = defaultdict(list)
         self.published: list[DomainEvent] = []
 
     async def publish(self, event: object) -> None:
         if not isinstance(event, DomainEvent):
-            raise TypeError(
-                f"InMemoryEventBus can only publish DomainEvent, got {type(event)!r}"
-            )
+            raise TypeError(f"InMemoryEventBus can only publish DomainEvent, got {type(event)!r}")
         self.published.append(event)
         payload = event.to_payload()
         for topic in (event.topic, _WILDCARD):

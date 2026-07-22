@@ -65,9 +65,7 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [
-            origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
-        ]
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     @property
     def is_production(self) -> bool:
@@ -79,18 +77,14 @@ class Settings(BaseSettings):
         level = value.upper()
         valid = {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"}
         if level not in valid:
-            raise ValueError(
-                f"invalid log level {value!r}; expected one of {sorted(valid)}"
-            )
+            raise ValueError(f"invalid log level {value!r}; expected one of {sorted(valid)}")
         return level
 
     @model_validator(mode="after")
     def _reject_insecure_production_secret(self) -> Settings:
         if self.is_production:
             secret = self.jwt_secret.get_secret_value().lower()
-            if len(secret) < 32 or any(
-                marker in secret for marker in _INSECURE_SECRET_MARKERS
-            ):
+            if len(secret) < 32 or any(marker in secret for marker in _INSECURE_SECRET_MARKERS):
                 raise ValueError(
                     "NEXGUARD_JWT_SECRET must be a strong (>=32 char) non-default secret "
                     "in production"

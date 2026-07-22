@@ -35,9 +35,7 @@ def test_invalid_log_level_rejected() -> None:
 
 def test_production_rejects_insecure_secret() -> None:
     with pytest.raises(ValidationError):
-        _settings(
-            env="production", jwt_secret=SecretStr("change-me-in-development-only")
-        )
+        _settings(env="production", jwt_secret=SecretStr("change-me-in-development-only"))
 
 
 def test_production_accepts_strong_secret() -> None:

@@ -69,9 +69,7 @@ class StubLLMProvider:
             confidence=_CONFIDENCE_BY_SEVERITY[severity],
             timeline=self._timeline(timestamps, cited_events, actual_event),
             affected_components=[session_id, *hosts],
-            evidence_refs=self._evidence_refs(
-                cited_events, hosts, timestamps, session_id
-            ),
+            evidence_refs=self._evidence_refs(cited_events, hosts, timestamps, session_id),
             mitre_hypotheses=self._mitre(severity),
             recommended_investigation_steps=[
                 f"Review the full event sequence for block {session_id} and compare "
@@ -106,9 +104,7 @@ class StubLLMProvider:
                 TimelineEntry(
                     timestamp=timestamps[-1],
                     description="Anomalous deviation from the expected event order observed.",
-                    event_id=(
-                        EventId(actual_event) if actual_event is not None else None
-                    ),
+                    event_id=(EventId(actual_event) if actual_event is not None else None),
                 )
             )
         return entries

@@ -73,18 +73,14 @@ async def seed_demo(
         ingest = IngestAndParse(
             miner, container.logs(session), SqlAlchemyTemplateRepository(session)
         )
-        sessions = await ingest.execute(
-            HdfsDatasetSource(log_path, label_path).iter_sessions()
-        )
+        sessions = await ingest.execute(HdfsDatasetSource(log_path, label_path).iter_sessions())
     result.sessions_ingested = len(sessions)
     logger.info("seed_ingested", sessions=len(sessions))
 
     # 2. Train both detectors on NORMAL sessions only (semi-supervised).
     normal = [s for s in sessions if s.label is False] or sessions
     templates = {int(t.event_id): t.template for t in miner.vocabulary()}
-    _train_and_save(
-        container, normal, templates, lstm_epochs=lstm_epochs, top_k=top_k, seed=seed
-    )
+    _train_and_save(container, normal, templates, lstm_epochs=lstm_epochs, top_k=top_k, seed=seed)
     container.load_detectors()
     logger.info("seed_trained", normal_sessions=len(normal), templates=len(templates))
 
@@ -133,8 +129,7 @@ def _train_and_save(
         seed=seed,
     )
     count_vectors = [
-        CountVector.from_counts(s.event_counts(), tuple(s.event_counts().keys()))
-        for s in normal
+        CountVector.from_counts(s.event_counts(), tuple(s.event_counts().keys())) for s in normal
     ]
     statistical_detector = IsolationForestDetector.fit(
         count_vectors, templates=templates, seed=seed

@@ -54,9 +54,7 @@ async def generate_report(
     session: SessionDep,
     regenerate: Annotated[bool, Query()] = False,
 ) -> ReportOut:
-    report = await container.generate_report(session).execute(
-        alert_id, regenerate=regenerate
-    )
+    report = await container.generate_report(session).execute(alert_id, regenerate=regenerate)
     await container.audit(session).record(
         actor_id=user.id,
         action="generate_report",

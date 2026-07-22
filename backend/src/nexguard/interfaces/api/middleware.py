@@ -26,14 +26,10 @@ _DOCS_PATHS = ("/docs", "/redoc", "/openapi.json")
 class CorrelationIdMiddleware(BaseHTTPMiddleware):
     """Binds a request-scoped id to the log context and echoes it back."""
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         request_id = request.headers.get("X-Request-ID") or uuid4().hex
         request.state.request_id = request_id
-        structlog.contextvars.bind_contextvars(
-            request_id=request_id, path=request.url.path
-        )
+        structlog.contextvars.bind_contextvars(request_id=request_id, path=request.url.path)
         try:
             response = await call_next(request)
         finally:
@@ -43,9 +39,7 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         response = await call_next(request)
         for header, value in _SECURITY_HEADERS.items():
             response.headers.setdefault(header, value)
@@ -92,9 +86,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._auth_prefix = auth_prefix
         self._exempt = exempt_prefixes
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         path = request.url.path
         if path.startswith(self._exempt):
             return await call_next(request)
@@ -102,9 +94,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         client_ip = request.client.host if request.client else "unknown"
         is_auth = path.startswith(self._auth_prefix)
         limiter = self._auth if is_auth else self._general
-        allowed, retry_after = limiter.check(
-            f"{client_ip}:{'auth' if is_auth else 'general'}"
-        )
+        allowed, retry_after = limiter.check(f"{client_ip}:{'auth' if is_auth else 'general'}")
         if not allowed:
             return JSONResponse(
                 status_code=429,
@@ -120,9 +110,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-def register_middleware(
-    app: FastAPI, *, general_per_minute: int, auth_per_minute: int
-) -> None:
+def register_middleware(app: FastAPI, *, general_per_minute: int, auth_per_minute: int) -> None:
     # Added outermost-first: correlation id wraps everything.
     app.add_middleware(
         RateLimitMiddleware,

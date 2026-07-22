@@ -59,13 +59,9 @@ class Drain3TemplateMiner:
         result = self._engine.add_log_message(content)
         cluster_id = int(result["cluster_id"])
         template = str(result["template_mined"])
-        extracted = self._engine.extract_parameters(
-            template, content, exact_matching=False
-        )
+        extracted = self._engine.extract_parameters(template, content, exact_matching=False)
         parameters = tuple(param.value for param in extracted) if extracted else ()
-        return TemplateMatch(
-            event_id=EventId(cluster_id), template=template, parameters=parameters
-        )
+        return TemplateMatch(event_id=EventId(cluster_id), template=template, parameters=parameters)
 
     def vocabulary(self) -> list[Template]:
         return [

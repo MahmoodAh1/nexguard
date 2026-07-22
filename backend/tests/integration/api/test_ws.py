@@ -43,9 +43,7 @@ def test_websocket_streams_alert_created(
         )
         token = login.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
-        session_id = client.get("/api/v1/alerts", headers=headers).json()[0][
-            "session_id"
-        ]
+        session_id = client.get("/api/v1/alerts", headers=headers).json()[0]["session_id"]
 
         with client.websocket_connect(f"/ws/alerts?token={token}") as ws:
             assert ws.receive_json()["topic"] == "connection.ready"

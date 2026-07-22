@@ -76,9 +76,7 @@ class IsolationForestDetector:
             raise ValueError("cannot fit IsolationForestDetector on zero sessions")
 
         feature_vocab = cls._union_vocab(count_vectors)
-        matrix = np.array(
-            [cls._align(cv, feature_vocab) for cv in count_vectors], dtype=float
-        )
+        matrix = np.array([cls._align(cv, feature_vocab) for cv in count_vectors], dtype=float)
 
         model = IsolationForest(
             n_estimators=n_estimators,
@@ -112,9 +110,7 @@ class IsolationForestDetector:
         # sigmoid(-margin / T): margin > 0 (inlier) -> < 0.5, margin < 0 -> > 0.5.
         return 1.0 / (1.0 + math.exp(margin / self._temperature))
 
-    def _attribution(
-        self, x: np.ndarray, anomaly: float
-    ) -> tuple[FeatureContribution, ...]:
+    def _attribution(self, x: np.ndarray, anomaly: float) -> tuple[FeatureContribution, ...]:
         contributions: list[FeatureContribution] = []
         for index, value in enumerate(x):
             if np.isclose(value, self._baseline[index]):

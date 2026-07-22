@@ -26,9 +26,7 @@ class RedisEventBus:
 
     async def publish(self, event: object) -> None:
         if not isinstance(event, DomainEvent):
-            raise TypeError(
-                f"RedisEventBus can only publish DomainEvent, got {type(event)!r}"
-            )
+            raise TypeError(f"RedisEventBus can only publish DomainEvent, got {type(event)!r}")
         await self._redis.publish(event.topic, json.dumps(event.to_payload()))
 
     async def subscribe(self, topic: str) -> AsyncIterator[dict[str, object]]:

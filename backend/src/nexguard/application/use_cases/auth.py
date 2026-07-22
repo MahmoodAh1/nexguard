@@ -23,18 +23,14 @@ class CreateUser:
             raise ValidationError("password must be at least 8 characters")
         if await self._users.by_email(normalized) is not None:
             raise ValidationError(f"user already exists: {normalized}")
-        user = User(
-            email=normalized, password_hash=self._hasher.hash(password), role=role
-        )
+        user = User(email=normalized, password_hash=self._hasher.hash(password), role=role)
         return await self._users.add(user)
 
 
 class Authenticate:
     """Verify credentials and issue a token pair."""
 
-    def __init__(
-        self, users: UserRepository, hasher: PasswordHasher, tokens: TokenService
-    ) -> None:
+    def __init__(self, users: UserRepository, hasher: PasswordHasher, tokens: TokenService) -> None:
         self._users = users
         self._hasher = hasher
         self._tokens = tokens

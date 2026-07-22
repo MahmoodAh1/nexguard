@@ -67,10 +67,7 @@ class TestSeverity:
         assert Severity.from_score(Score(score)) is expected
 
     def test_rank_ordering(self) -> None:
-        ranks = [
-            s.rank
-            for s in (Severity.LOW, Severity.MEDIUM, Severity.HIGH, Severity.CRITICAL)
-        ]
+        ranks = [s.rank for s in (Severity.LOW, Severity.MEDIUM, Severity.HIGH, Severity.CRITICAL)]
         assert ranks == sorted(ranks)
         assert Severity.CRITICAL.rank > Severity.LOW.rank
 

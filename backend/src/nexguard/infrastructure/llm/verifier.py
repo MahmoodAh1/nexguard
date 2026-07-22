@@ -19,14 +19,10 @@ from nexguard.domain.verification import Citation, EvidenceIndex, VerificationRe
 class EvidenceVerifier:
     """Rejects any report that cites evidence absent from the index."""
 
-    def verify(
-        self, report: IncidentReport, evidence_index: EvidenceIndex
-    ) -> VerificationResult:
+    def verify(self, report: IncidentReport, evidence_index: EvidenceIndex) -> VerificationResult:
         payload = report.payload
         if payload is None:
-            return VerificationResult(
-                is_valid=False, reasons=("report has no payload",)
-            )
+            return VerificationResult(is_valid=False, reasons=("report has no payload",))
 
         reasons: list[str] = []
         checked: list[Citation] = []
@@ -40,15 +36,9 @@ class EvidenceVerifier:
         for index, entry in enumerate(payload.timeline):
             checked.append(Citation(kind="timestamp", ref=entry.timestamp))
             if not evidence_index.has_timestamp(entry.timestamp):
-                reasons.append(
-                    f"timeline[{index}] cites unknown timestamp: {entry.timestamp!r}"
-                )
-            if entry.event_id is not None and not evidence_index.has_event(
-                int(entry.event_id)
-            ):
-                reasons.append(
-                    f"timeline[{index}] cites unknown event id: {int(entry.event_id)}"
-                )
+                reasons.append(f"timeline[{index}] cites unknown timestamp: {entry.timestamp!r}")
+            if entry.event_id is not None and not evidence_index.has_event(int(entry.event_id)):
+                reasons.append(f"timeline[{index}] cites unknown event id: {int(entry.event_id)}")
 
         for component in payload.affected_components:
             checked.append(Citation(kind="component", ref=component))

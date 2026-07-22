@@ -32,9 +32,7 @@ _EPS = 1e-9
 
 
 class _DeepLogLSTM(nn.Module):
-    def __init__(
-        self, vocab_size: int, embed_dim: int, hidden: int, layers: int
-    ) -> None:
+    def __init__(self, vocab_size: int, embed_dim: int, hidden: int, layers: int) -> None:
         super().__init__()
         self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=_PAD)
         self.lstm = nn.LSTM(embed_dim, hidden, num_layers=layers, batch_first=True)
@@ -138,9 +136,7 @@ class LstmSequenceDetector:
                 context = self._context(indices, position)
                 logits = self._model(torch.tensor([context], dtype=torch.long))[0]
                 probs = torch.softmax(logits, dim=-1)
-                topk = torch.topk(
-                    logits, min(self._top_k, logits.shape[-1])
-                ).indices.tolist()
+                topk = torch.topk(logits, min(self._top_k, logits.shape[-1])).indices.tolist()
 
                 cross_entropies.append(-math.log(float(probs[target]) + _EPS))
                 per_step_top1.append(float(probs.max()))
@@ -174,9 +170,7 @@ class LstmSequenceDetector:
 
     def _decode_topk(self, topk_indices: list[int]) -> tuple[EventId, ...]:
         return tuple(
-            EventId(self._index_to_id[idx])
-            for idx in topk_indices
-            if idx in self._index_to_id
+            EventId(self._index_to_id[idx]) for idx in topk_indices if idx in self._index_to_id
         )
 
     # ── persistence ──
@@ -198,9 +192,7 @@ class LstmSequenceDetector:
         target = Path(path)
         meta = json.loads(target.with_suffix(".meta.json").read_text(encoding="utf-8"))
         hp = meta["hyperparams"]
-        model = _DeepLogLSTM(
-            hp["vocab_size"], hp["embed_dim"], hp["hidden"], hp["layers"]
-        )
+        model = _DeepLogLSTM(hp["vocab_size"], hp["embed_dim"], hp["hidden"], hp["layers"])
         # weights_only=True: never unpickle arbitrary objects from the weights file.
         model.load_state_dict(torch.load(target, map_location="cpu", weights_only=True))
         return cls(

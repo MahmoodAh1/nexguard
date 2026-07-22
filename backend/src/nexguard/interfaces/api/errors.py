@@ -43,9 +43,7 @@ async def _validation(_: Request, exc: Exception) -> JSONResponse:
 
 
 async def _authentication(_: Request, exc: Exception) -> JSONResponse:
-    return _problem(
-        401, "Unauthorized", str(exc), headers={"WWW-Authenticate": "Bearer"}
-    )
+    return _problem(401, "Unauthorized", str(exc), headers={"WWW-Authenticate": "Bearer"})
 
 
 async def _authorization(_: Request, exc: Exception) -> JSONResponse:
@@ -54,9 +52,7 @@ async def _authorization(_: Request, exc: Exception) -> JSONResponse:
 
 async def _rate_limit(_: Request, exc: Exception) -> JSONResponse:
     retry_after = exc.retry_after_seconds if isinstance(exc, RateLimitError) else 60
-    return _problem(
-        429, "Too Many Requests", str(exc), headers={"Retry-After": str(retry_after)}
-    )
+    return _problem(429, "Too Many Requests", str(exc), headers={"Retry-After": str(retry_after)})
 
 
 async def _report_generation(_: Request, exc: Exception) -> JSONResponse:

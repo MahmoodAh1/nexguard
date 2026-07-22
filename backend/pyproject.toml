@@ -64,6 +64,16 @@ packages = ["src/nexguard"]
 [tool.uv]
 default-groups = ["dev"]
 
+# Pin PyTorch to the CPU wheels on every platform: deterministic, and avoids the
+# multi-GB CUDA build on Linux CI (NexGuard serves inference on CPU).
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
 # ─────────────────────────── Ruff ───────────────────────────
 [tool.ruff]
 line-length = 100

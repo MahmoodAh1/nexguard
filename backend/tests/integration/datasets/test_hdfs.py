@@ -11,9 +11,7 @@ from nexguard.infrastructure.datasets.hdfs import HdfsDatasetSource
 pytestmark = pytest.mark.integration
 
 
-def test_groups_lines_into_labeled_sessions(
-    hdfs_log_path: Path, hdfs_label_path: Path
-) -> None:
+def test_groups_lines_into_labeled_sessions(hdfs_log_path: Path, hdfs_label_path: Path) -> None:
     source = HdfsDatasetSource(hdfs_log_path, hdfs_label_path)
     sessions = list(source.iter_sessions())
 

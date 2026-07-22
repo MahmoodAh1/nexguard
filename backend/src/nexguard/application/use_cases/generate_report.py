@@ -49,9 +49,7 @@ class GenerateReport:
         self._model_name = model_name
         self._bus = event_bus
 
-    async def execute(
-        self, alert_id: UUID, *, regenerate: bool = False
-    ) -> IncidentReport:
+    async def execute(self, alert_id: UUID, *, regenerate: bool = False) -> IncidentReport:
         if not regenerate:
             existing = await self._reports.get_by_alert(alert_id)
             if existing is not None:
@@ -67,20 +65,14 @@ class GenerateReport:
         prompt = build_report_prompt(alert, session)
         payload = await self._llm.complete_json(prompt, IncidentReportPayload)
 
-        report = IncidentReport(
-            alert_id=alert.id, model=self._model_name, payload=payload
-        )
-        result = self._verifier.verify(
-            report, EvidenceIndex.build(session, alert.evidence)
-        )
+        report = IncidentReport(alert_id=alert.id, model=self._model_name, payload=payload)
+        result = self._verifier.verify(report, EvidenceIndex.build(session, alert.evidence))
         report.verified = result.is_valid
         report.rejected_reasons = list(result.reasons)
 
         await self._reports.add(report)
         if self._bus is not None:
             await self._bus.publish(
-                ReportGenerated(
-                    alert_id=alert.id, report_id=report.id, verified=report.verified
-                )
+                ReportGenerated(alert_id=alert.id, report_id=report.id, verified=report.verified)
             )
         return report

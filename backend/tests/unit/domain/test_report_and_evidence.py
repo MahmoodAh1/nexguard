@@ -27,11 +27,7 @@ def _valid_report() -> IncidentReportPayload:
         summary="Anomalous block lifecycle detected.",
         severity=Severity.HIGH,
         confidence="medium",
-        timeline=[
-            TimelineEntry(
-                timestamp="2026-01-01T00:00:00+00:00", description="write began"
-            )
-        ],
+        timeline=[TimelineEntry(timestamp="2026-01-01T00:00:00+00:00", description="write began")],
         affected_components=["blk_-123"],
         evidence_refs=[EvidenceRef(kind="event", ref="9")],
         mitre_hypotheses=[
@@ -88,14 +84,10 @@ class TestMitreHypothesis:
     @pytest.mark.parametrize("bad_id", ["1078", "TX078", "T10", "technique-1078"])
     def test_rejects_malformed_technique_id(self, bad_id: str) -> None:
         with pytest.raises(PydanticValidationError):
-            MitreHypothesis(
-                technique_id=bad_id, name="n", rationale="r", confidence="low"
-            )
+            MitreHypothesis(technique_id=bad_id, name="n", rationale="r", confidence="low")
 
     def test_accepts_sub_technique_id(self) -> None:
-        hypo = MitreHypothesis(
-            technique_id="T1078.003", name="n", rationale="r", confidence="high"
-        )
+        hypo = MitreHypothesis(technique_id="T1078.003", name="n", rationale="r", confidence="high")
         assert hypo.technique_id == "T1078.003"
 
 
@@ -114,9 +106,7 @@ class TestEvidenceRoundTrip:
             statistical=StatisticalEvidence(
                 anomaly_score=0.63,
                 important_features=[
-                    FeatureContribution(
-                        event_id=EventId(9), template="write", contribution=0.5
-                    )
+                    FeatureContribution(event_id=EventId(9), template="write", contribution=0.5)
                 ],
             ),
             ensemble=EnsembleEvidence(
@@ -128,9 +118,7 @@ class TestEvidenceRoundTrip:
                 threshold=0.5,
                 severity=Severity.HIGH,
             ),
-            provenance=Provenance(
-                session_external_id="blk_1", dataset="hdfs", event_count=3
-            ),
+            provenance=Provenance(session_external_id="blk_1", dataset="hdfs", event_count=3),
         )
         restored = Evidence.from_json_dict(evidence.to_json_dict())
         assert restored == evidence

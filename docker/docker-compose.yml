@@ -1,0 +1,99 @@
+# NexGuard full stack — one command brings the platform online:
+#   docker compose -f docker/docker-compose.yml up --build
+#
+# The `seed` service runs migrations, trains the detectors, scores the bundled
+# HDFS fixture into alerts, and creates demo users; `api` then serves, and
+# `frontend` is the SOC console. Ollama is optional (profile: ollama).
+
+name: nexguard
+
+x-backend-env: &backend-env
+  NEXGUARD_ENV: production
+  NEXGUARD_DEBUG: "false"
+  NEXGUARD_LOG_JSON: "true"
+  NEXGUARD_DATABASE_URL: postgresql+asyncpg://nexguard:nexguard@postgres:5432/nexguard
+  NEXGUARD_REDIS_URL: redis://redis:6379/0
+  NEXGUARD_EVENT_BUS: redis
+  NEXGUARD_LLM_PROVIDER: stub # set to `ollama` and enable the ollama profile for real reports
+  NEXGUARD_OLLAMA_BASE_URL: http://ollama:11434
+  NEXGUARD_CORS_ORIGINS: http://localhost:3000
+  NEXGUARD_MODEL_ARTIFACT_DIR: /models/artifacts
+  # Demo-only secret — generate a real one for any non-local deployment.
+  NEXGUARD_JWT_SECRET: nexguard_local_demo_key_9f2a7c1e4b8d6a3f0e5c9b2d1a7f4e6c
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nexguard
+      POSTGRES_PASSWORD: nexguard
+      POSTGRES_DB: nexguard
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexguard"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  seed:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    image: nexguard-backend:local
+    environment: *backend-env
+    command: sh -lc "alembic upgrade head && nexguard seed"
+    volumes:
+      - models:/models
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: "no"
+
+  api:
+    image: nexguard-backend:local
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    environment: *backend-env
+    command: ["nexguard", "serve"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - models:/models
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      seed: { condition: service_completed_successfully }
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../docker/Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+volumes:
+  pgdata:
+  models:
+  ollama:

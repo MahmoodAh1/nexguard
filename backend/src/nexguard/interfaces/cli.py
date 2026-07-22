@@ -22,12 +22,8 @@ _DEFAULT_LABELS = "tests/fixtures/hdfs/anomaly_label.csv"
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        prog="nexguard", description="NexGuard SOC platform CLI"
-    )
-    parser.add_argument(
-        "--version", action="version", version=f"NexGuard {__version__}"
-    )
+    parser = argparse.ArgumentParser(prog="nexguard", description="NexGuard SOC platform CLI")
+    parser.add_argument("--version", action="version", version=f"NexGuard {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     serve = sub.add_parser("serve", help="run the API server")
@@ -37,9 +33,7 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("init-db", help="create database schema (dev)")
 
-    seed = sub.add_parser(
-        "seed", help="seed the demo: ingest, train, detect, create users"
-    )
+    seed = sub.add_parser("seed", help="seed the demo: ingest, train, detect, create users")
     seed.add_argument("--log", default=_DEFAULT_LOG)
     seed.add_argument("--labels", default=_DEFAULT_LABELS)
     seed.add_argument("--epochs", type=int, default=15)
@@ -47,9 +41,7 @@ def main(argv: list[str] | None = None) -> int:
     user = sub.add_parser("create-user", help="create a user")
     user.add_argument("email")
     user.add_argument("password")
-    user.add_argument(
-        "--role", choices=[r.value for r in UserRole], default=UserRole.VIEWER.value
-    )
+    user.add_argument("--role", choices=[r.value for r in UserRole], default=UserRole.VIEWER.value)
 
     args = parser.parse_args(argv)
 
@@ -91,9 +83,7 @@ async def _seed(log: str, labels: str, epochs: int) -> int:
     container = Container(get_settings())
     await container.startup()
     try:
-        result = await seed_demo(
-            container, log_path=log, label_path=labels, lstm_epochs=epochs
-        )
+        result = await seed_demo(container, log_path=log, label_path=labels, lstm_epochs=epochs)
     finally:
         await container.shutdown()
     anomalies = sum(1 for o in result.outcomes if o.is_anomaly)

@@ -10,8 +10,10 @@ layer, then iterative deepening. Progress is gated — work proceeds autonomousl
 **Deliverable:** the documents in `docs/architecture/` + ADRs + design spec.
 **Gate 0:** architecture & structure approved. ⤶ _you are here_
 
-## Phase 1 — Vertical slice (Checkpoint 1)
-One thin-but-**real** path end to end. Definition of done:
+## Phase 1 — Vertical slice (Checkpoint 1) ✅ COMPLETE
+One thin-but-**real** path end to end — delivered: 134 tests (123 backend + 11
+frontend), `mypy --strict` clean, seeded regression at 10/10 recall & 0 false
+positives, `docker compose up` brings the full stack online. Definition of done:
 
 1. **Scaffold** the monorepo (backend package, frontend app, docker, CI, tooling).
 2. **Ingest** an HDFS fixture (bundled sample) via the `IngestLogs` use case.

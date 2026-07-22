@@ -41,9 +41,7 @@ def build_grounding(alert: Alert, session: Session) -> dict[str, object]:
             "start": time_range.start.isoformat() if time_range else None,
             "end": time_range.end.isoformat() if time_range else None,
         },
-        "suspicious_subsequence": [
-            int(e) for e in evidence.sequence.suspicious_subsequence
-        ],
+        "suspicious_subsequence": [int(e) for e in evidence.sequence.suspicious_subsequence],
         "predicted_topk": [int(e) for e in evidence.sequence.predicted_topk],
         "actual_event": (
             int(evidence.sequence.actual_event)

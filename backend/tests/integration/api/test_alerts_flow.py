@@ -35,14 +35,10 @@ async def test_alert_exploration_and_report_generation(
     detail = await client.get(f"/api/v1/alerts/{alert_id}", headers=bearer(viewer))
     assert detail.status_code == 200
     evidence = detail.json()["evidence"]
-    assert (
-        "sequence" in evidence and "statistical" in evidence and "ensemble" in evidence
-    )
+    assert "sequence" in evidence and "statistical" in evidence and "ensemble" in evidence
 
     # Analyst generates a verified incident report.
-    generated = await client.post(
-        f"/api/v1/alerts/{alert_id}/report", headers=bearer(analyst)
-    )
+    generated = await client.post(f"/api/v1/alerts/{alert_id}/report", headers=bearer(analyst))
     assert generated.status_code == 201
     report = generated.json()
     assert report["verified"] is True
@@ -50,9 +46,7 @@ async def test_alert_exploration_and_report_generation(
     assert all(h["is_hypothesis"] for h in report["payload"]["mitre_hypotheses"])
 
     # And can fetch it back.
-    fetched = await client.get(
-        f"/api/v1/alerts/{alert_id}/report", headers=bearer(viewer)
-    )
+    fetched = await client.get(f"/api/v1/alerts/{alert_id}/report", headers=bearer(viewer))
     assert fetched.status_code == 200
     assert fetched.json()["id"] == report["id"]
 

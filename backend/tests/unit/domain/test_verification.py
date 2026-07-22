@@ -58,9 +58,7 @@ def _session() -> Session:
 
 def test_index_knows_real_events_hosts_timestamps() -> None:
     session = _session()
-    index = EvidenceIndex.build(
-        session, _evidence("blk_-42", "2026-01-01T00:00:00+00:00")
-    )
+    index = EvidenceIndex.build(session, _evidence("blk_-42", "2026-01-01T00:00:00+00:00"))
 
     assert index.has_event(5)
     assert index.has_event("9")

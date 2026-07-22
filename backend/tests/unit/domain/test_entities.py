@@ -44,9 +44,7 @@ def _evidence() -> Evidence:
             threshold=0.5,
             severity=Severity.CRITICAL,
         ),
-        provenance=Provenance(
-            session_external_id="blk_1", dataset="hdfs", event_count=3
-        ),
+        provenance=Provenance(session_external_id="blk_1", dataset="hdfs", event_count=3),
     )
 
 

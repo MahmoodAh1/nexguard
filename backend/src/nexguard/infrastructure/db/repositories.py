@@ -50,9 +50,7 @@ class SqlAlchemyLogRepository:
         )
         return mappers.session_to_entity(row) if row else None
 
-    async def get_session_by_external_id(
-        self, dataset: str, external_id: str
-    ) -> Session | None:
+    async def get_session_by_external_id(self, dataset: str, external_id: str) -> Session | None:
         stmt = (
             select(SessionRow)
             .where(SessionRow.dataset == dataset, SessionRow.external_id == external_id)
@@ -62,9 +60,7 @@ class SqlAlchemyLogRepository:
         row = (await self._session.execute(stmt)).scalar_one_or_none()
         return mappers.session_to_entity(row) if row else None
 
-    async def list_sessions(
-        self, *, limit: int = 100, offset: int = 0
-    ) -> list[Session]:
+    async def list_sessions(self, *, limit: int = 100, offset: int = 0) -> list[Session]:
         stmt = (
             select(SessionRow)
             .options(selectinload(SessionRow.events))
@@ -122,11 +118,7 @@ class SqlAlchemyReportRepository:
         return report
 
     async def get_by_alert(self, alert_id: UUID) -> IncidentReport | None:
-        stmt = (
-            select(IncidentReportRow)
-            .where(IncidentReportRow.alert_id == alert_id)
-            .limit(1)
-        )
+        stmt = select(IncidentReportRow).where(IncidentReportRow.alert_id == alert_id).limit(1)
         row = (await self._session.execute(stmt)).scalar_one_or_none()
         return mappers.report_to_entity(row) if row else None
 

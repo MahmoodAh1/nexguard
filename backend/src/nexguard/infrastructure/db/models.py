@@ -66,12 +66,8 @@ class SessionRow(Base):
     dataset: Mapped[str] = mapped_column(String(32), index=True)
     event_count: Mapped[int] = mapped_column(Integer, default=0)
     label: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-    started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    ended_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     events: Mapped[list[LogEventRow]] = relationship(
@@ -93,9 +89,7 @@ class LogEventRow(Base):
     raw: Mapped[str] = mapped_column(Text)
     line_no: Mapped[int] = mapped_column(Integer)
     params: Mapped[dict[str, str]] = mapped_column(JsonType, default=dict)
-    timestamp: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    timestamp: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     session: Mapped[SessionRow] = relationship(back_populates="events")
 
@@ -120,9 +114,7 @@ class AlertRow(Base):
     severity: Mapped[str] = mapped_column(String(16), index=True)
     status: Mapped[str] = mapped_column(String(16), default="new", index=True)
     evidence: Mapped[dict[str, object]] = mapped_column(JsonType)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_now, index=True
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
 
 
 class IncidentReportRow(Base):
@@ -159,6 +151,4 @@ class AuditLogRow(Base):
     resource: Mapped[str] = mapped_column(String(255))
     ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
     meta: Mapped[dict[str, object]] = mapped_column("metadata", JsonType, default=dict)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_now, index=True
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)

@@ -76,9 +76,7 @@ async def test_viewer_cannot_generate_report(
     alerts = (await client.get("/api/v1/alerts", headers=bearer(token))).json()
     assert alerts, "seed should have produced alerts"
     alert_id = alerts[0]["id"]
-    response = await client.post(
-        f"/api/v1/alerts/{alert_id}/report", headers=bearer(token)
-    )
+    response = await client.post(f"/api/v1/alerts/{alert_id}/report", headers=bearer(token))
     assert response.status_code == 403
 
 
@@ -90,9 +88,7 @@ async def test_auth_endpoint_rate_limited(
     await container.startup()
     try:
         transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(
-            transport=transport, base_url="http://testserver"
-        ) as http:
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as http:
             statuses = [
                 (
                     await http.post(

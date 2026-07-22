@@ -39,7 +39,9 @@ class _FabricatingLLM:
         )
 
 
-async def _wire(session: Session, alert: Alert) -> tuple[
+async def _wire(
+    session: Session, alert: Alert
+) -> tuple[
     InMemoryAlertRepository,
     InMemoryReportRepository,
     InMemoryLogRepository,

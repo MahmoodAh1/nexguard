@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1
+# Multi-stage build for the NexGuard backend (build context: ./backend).
+# Torch is pinned to CPU wheels via pyproject, so the image stays lean.
+
+FROM python:3.12-slim AS builder
+
+RUN pip install --no-cache-dir uv==0.11.26
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1
+WORKDIR /app
+
+# Install dependencies first (cached layer) — deps only, not the project.
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-dev --extra postgres --no-install-project
+
+# Then the source and install the project itself.
+COPY src ./src
+COPY migrations ./migrations
+COPY alembic.ini ./
+COPY tests/fixtures ./tests/fixtures
+RUN uv sync --frozen --no-dev --extra postgres
+
+
+FROM python:3.12-slim AS runtime
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    NEXGUARD_MODEL_ARTIFACT_DIR=/models/artifacts
+WORKDIR /app
+
+# Non-root user; /models is a writable, volume-friendly artifact directory.
+RUN groupadd -r nexguard \
+    && useradd -r -g nexguard -d /app nexguard \
+    && mkdir -p /models/artifacts \
+    && chown -R nexguard:nexguard /models
+
+COPY --from=builder /app /app
+USER nexguard
+
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"
+
+CMD ["nexguard", "serve"]
