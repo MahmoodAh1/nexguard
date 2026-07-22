@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
@@ -21,14 +22,14 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/dashboard", label: "Executive Dashboard", icon: LayoutDashboard, active: true },
-  { href: "#", label: "Alert Explorer", icon: Bell, active: false },
-  { href: "#", label: "Incident Reports", icon: FileSearch, active: false },
-  { href: "#", label: "Log Explorer", icon: ScrollText, active: false },
-  { href: "#", label: "Detection Analytics", icon: BarChart3, active: false },
-  { href: "#", label: "Live Monitoring", icon: Radio, active: false },
-  { href: "#", label: "Feedback Center", icon: MessageSquare, active: false },
-  { href: "#", label: "Configuration", icon: Settings, active: false },
+  { href: "/dashboard", label: "Executive Dashboard", icon: LayoutDashboard },
+  { href: "/alerts", label: "Alert Explorer", icon: Bell },
+  { href: "/reports", label: "Incident Reports", icon: FileSearch },
+  { href: "/logs", label: "Log Explorer", icon: ScrollText },
+  { href: "/analytics", label: "Detection Analytics", icon: BarChart3 },
+  { href: "/monitoring", label: "Live Monitoring", icon: Radio },
+  { href: "/feedback", label: "Feedback Center", icon: MessageSquare },
+  { href: "/config", label: "Configuration", icon: Settings },
 ] as const;
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -61,19 +62,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <nav className="flex-1 space-y-0.5 px-3 py-2">
           {NAV.map((item) => {
-            const isActive = item.active && pathname === item.href;
+            const isActive = pathname === item.href;
             return (
-              <a
+              <Link
                 key={item.label}
-                href={item.active ? item.href : undefined}
-                aria-disabled={!item.active}
+                href={item.href}
                 className={cn(
                   "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
                   isActive
                     ? "bg-surface-2 font-medium text-foreground"
-                    : item.active
-                      ? "text-muted hover:bg-surface-2 hover:text-foreground"
-                      : "cursor-not-allowed text-subtle/70",
+                    : "text-muted hover:bg-surface-2 hover:text-foreground",
                 )}
               >
                 {isActive && (
@@ -81,12 +79,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
                 <item.icon className="size-4 shrink-0" strokeWidth={1.75} />
                 <span className="truncate">{item.label}</span>
-                {!item.active && (
-                  <span className="ml-auto rounded bg-surface-2 px-1.5 py-px text-[9px] uppercase text-subtle">
-                    Soon
-                  </span>
-                )}
-              </a>
+              </Link>
             );
           })}
         </nav>

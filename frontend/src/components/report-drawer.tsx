@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { FeedbackControls } from "@/components/feedback-controls";
 import { SeverityBadge } from "@/components/severity";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -56,6 +57,7 @@ export function ReportDrawer({ alertId, onOpenChange }: ReportDrawerProps) {
         </SheetHeader>
 
         <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+          {alert && <FeedbackControls alertId={alert.id} />}
           {alert ? <EvidenceView alert={alert} /> : <EvidenceSkeleton />}
 
           <section className="space-y-3">

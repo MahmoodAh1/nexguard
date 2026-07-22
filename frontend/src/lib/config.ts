@@ -4,8 +4,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export const config = {
   apiBaseUrl: API_URL,
-  wsUrl: (token: string): string => {
+  wsUrl: (path: "/ws/alerts" | "/ws/metrics", token: string): string => {
     const base = API_URL.replace(/^http/, "ws");
-    return `${base}/ws/alerts?token=${encodeURIComponent(token)}`;
+    return `${base}${path}?token=${encodeURIComponent(token)}`;
   },
 } as const;

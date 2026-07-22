@@ -133,6 +133,98 @@ export interface AlertCreatedEvent {
   score: number;
 }
 
+export type FeedbackLabel = "true_positive" | "false_positive" | "benign" | "unknown";
+
+export interface FeedbackItem {
+  id: string;
+  alert_id: string;
+  analyst_id: string;
+  label: FeedbackLabel;
+  note: string | null;
+  created_at: string;
+}
+
+export interface CalibrationSnapshot {
+  id: string;
+  threshold: number;
+  seq_weight: number;
+  stat_weight: number;
+  feedback_count: number;
+  precision_before: number;
+  recall_before: number;
+  precision_after: number;
+  recall_after: number;
+  created_at: string;
+}
+
+export interface FeedbackSummary {
+  total: number;
+  counts: Record<string, number>;
+  latest_calibration: CalibrationSnapshot | null;
+}
+
+export interface LogEventItem {
+  event_id: number;
+  raw: string;
+  line_no: number;
+  timestamp: string | null;
+}
+
+export interface SessionSummary {
+  id: string;
+  external_id: string;
+  dataset: string;
+  event_count: number;
+  label: boolean | null;
+  created_at: string;
+}
+
+export interface SessionDetail extends SessionSummary {
+  events: LogEventItem[];
+}
+
+export interface TemplateItem {
+  event_id: number;
+  template: string;
+  occurrences: number;
+}
+
+export interface ScoreBucket {
+  lower: number;
+  upper: number;
+  count: number;
+}
+
+export interface AnalyticsSummary {
+  total_alerts: number;
+  by_severity: Record<string, number>;
+  by_status: Record<string, number>;
+  score_histogram: ScoreBucket[];
+  seq_weight: number;
+  stat_weight: number;
+  threshold: number;
+  detectors_loaded: boolean;
+  latest_calibration: CalibrationSnapshot | null;
+}
+
+export interface RuntimeConfig {
+  seq_weight: number;
+  stat_weight: number;
+  threshold: number;
+  detectors_loaded: boolean;
+  llm_provider: string;
+  model_name: string;
+}
+
+export interface MetricsTick {
+  topic: "metrics.tick";
+  occurred_at: string;
+  cpu_percent: number;
+  memory_percent: number;
+  process_rss_mb: number;
+  active_alerts: number;
+}
+
 export interface WsEnvelope {
   topic: string;
   [key: string]: unknown;

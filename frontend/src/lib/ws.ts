@@ -3,33 +3,29 @@
 import { useEffect, useRef, useState } from "react";
 
 import { config } from "@/lib/config";
-import type { AlertCreatedEvent, WsEnvelope } from "@/lib/types";
+import type { AlertCreatedEvent, MetricsTick, WsEnvelope } from "@/lib/types";
 
 export type LiveStatus = "connecting" | "live" | "offline";
 
-interface UseLiveAlertsResult {
-  status: LiveStatus;
-}
-
 /**
- * Maintains a resilient WebSocket to the alert stream. Reconnects with capped
- * backoff, and invokes `onAlert` for every `alert.created` event so callers can
- * update their cache / prepend the row in real time.
+ * Shared resilient WebSocket subscription. Reconnects with capped backoff and
+ * invokes `onMessage` for every frame whose `topic` matches.
  */
-export function useLiveAlerts(
+function useLiveTopic<T extends { topic: string }>(
+  path: "/ws/alerts" | "/ws/metrics",
+  topic: string,
   token: string | null,
-  onAlert: (event: AlertCreatedEvent) => void,
-): UseLiveAlertsResult {
+  onMessage: (event: T) => void,
+): LiveStatus {
   const [status, setStatus] = useState<LiveStatus>("offline");
-  const onAlertRef = useRef(onAlert);
-  onAlertRef.current = onAlert;
+  const handlerRef = useRef(onMessage);
+  handlerRef.current = onMessage;
 
   useEffect(() => {
     if (!token) {
       setStatus("offline");
       return;
     }
-
     let socket: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let attempt = 0;
@@ -37,43 +33,51 @@ export function useLiveAlerts(
 
     const connect = () => {
       setStatus("connecting");
-      socket = new WebSocket(config.wsUrl(token));
-
+      socket = new WebSocket(config.wsUrl(path, token));
       socket.onopen = () => {
         attempt = 0;
         setStatus("live");
       };
-
       socket.onmessage = (message) => {
         try {
           const envelope = JSON.parse(message.data as string) as WsEnvelope;
-          if (envelope.topic === "alert.created") {
-            onAlertRef.current(envelope as unknown as AlertCreatedEvent);
-          }
+          if (envelope.topic === topic) handlerRef.current(envelope as unknown as T);
         } catch {
-          // Ignore malformed frames.
+          /* ignore malformed frames */
         }
       };
-
       socket.onclose = () => {
         if (closed) return;
         setStatus("offline");
         attempt += 1;
-        const delay = Math.min(1000 * 2 ** attempt, 15000);
-        reconnectTimer = setTimeout(connect, delay);
+        reconnectTimer = setTimeout(connect, Math.min(1000 * 2 ** attempt, 15000));
       };
-
       socket.onerror = () => socket?.close();
     };
 
     connect();
-
     return () => {
       closed = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
       socket?.close();
     };
-  }, [token]);
+  }, [path, topic, token]);
 
+  return status;
+}
+
+export function useLiveAlerts(
+  token: string | null,
+  onAlert: (event: AlertCreatedEvent) => void,
+): { status: LiveStatus } {
+  const status = useLiveTopic<AlertCreatedEvent>("/ws/alerts", "alert.created", token, onAlert);
+  return { status };
+}
+
+export function useLiveMetrics(
+  token: string | null,
+  onTick: (event: MetricsTick) => void,
+): { status: LiveStatus } {
+  const status = useLiveTopic<MetricsTick>("/ws/metrics", "metrics.tick", token, onTick);
   return { status };
 }
