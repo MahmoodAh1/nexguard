@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import math
+from collections.abc import Sequence
 from pathlib import Path
 
 import torch
@@ -122,7 +123,7 @@ class LstmSequenceDetector:
         )
 
     # ── inference ──
-    def score(self, sequence: list[EventId] | tuple[EventId, ...]) -> SequenceVerdict:
+    def score(self, sequence: Sequence[EventId]) -> SequenceVerdict:
         indices = [self._id_to_index.get(int(eid), _UNK) for eid in sequence]
         if not indices:
             return SequenceVerdict(anomaly_score=0.0, confidence=1.0, perplexity=1.0)
@@ -148,7 +149,10 @@ class LstmSequenceDetector:
                     surprising.append(position)
 
         num_steps = len(indices)
-        anomaly_score = len(surprising) / num_steps
+        # DeepLog semantics: a single surprising step is a strong signal, so the
+        # score saturates in the number of surprises rather than diluting by
+        # session length (one anomalous event in a long session still scores high).
+        anomaly_score = 1.0 - math.exp(-1.5 * len(surprising))
         perplexity = math.exp(sum(cross_entropies) / num_steps)
         flagged = max(range(num_steps), key=lambda i: cross_entropies[i])
 

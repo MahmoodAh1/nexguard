@@ -52,7 +52,7 @@ dev = [
     "hypothesis>=6.115",
     "ruff>=0.8",
     "mypy>=1.13",
-    "types-redis>=4.6",
+    "types-psutil>=6.1",
 ]
 
 [project.scripts]
@@ -116,6 +116,12 @@ explicit_package_bases = true
 module = ["drain3.*", "sklearn.*", "torch.*", "scipy.*", "joblib.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+# redis-py 8 ships inline types, but its async cleanup methods (aclose) are
+# unannotated; don't fail strict untyped-call checks for this one adapter.
+module = ["nexguard.infrastructure.bus.redis_bus"]
+disallow_untyped_calls = false
+
 # ─────────────────────────── Pytest ───────────────────────────
 [tool.pytest.ini_options]
 minversion = "8.0"
@@ -130,6 +136,8 @@ markers = [
 filterwarnings = [
     # Third-party: joblib's numpy pickle vs NumPy 2.5 shape-setter deprecation.
     "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning:joblib.numpy_pickle",
+    # Starlette's TestClient warns about httpx; benign for our WebSocket tests.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
 ]
 
 [tool.coverage.run]
