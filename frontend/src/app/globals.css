@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/*
+ * NexGuard design tokens — a restrained, enterprise SOC dark theme in the spirit
+ * of CrowdStrike Falcon / Microsoft Sentinel: deep slate surfaces, one calm
+ * interactive blue, and semantic severity colors. Data-dense but scannable.
+ */
+@theme {
+  --color-bg: #070a12;
+  --color-surface: #0f1420;
+  --color-surface-2: #151b29;
+  --color-elevated: #1a2130;
+  --color-border: #222b3d;
+  --color-border-strong: #2f3a4f;
+  --color-foreground: #e7ecf5;
+  --color-muted: #97a3b6;
+  --color-subtle: #5b6678;
+
+  --color-primary: #4f8cff;
+  --color-primary-foreground: #05070d;
+  --color-accent: #22d3ee;
+
+  --color-critical: #ff5c7a;
+  --color-high: #ff8a4c;
+  --color-medium: #fbbf24;
+  --color-low: #38bdf8;
+  --color-info: #34d399;
+
+  --color-ring: #4f8cff;
+
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --radius-lg: 0.75rem;
+  --radius-md: 0.5rem;
+  --radius-sm: 0.375rem;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle atmospheric depth without distracting from data. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(80rem 40rem at 12% -10%, rgba(79, 140, 255, 0.08), transparent 60%),
+    radial-gradient(70rem 40rem at 100% 0%, rgba(34, 211, 238, 0.05), transparent 55%);
+}
+
+::selection {
+  background: rgba(79, 140, 255, 0.32);
+}
+
+/* Focus visibility for keyboard nav (a11y). */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* Slim, on-theme scrollbars. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-subtle);
+  background-clip: content-box;
+}
+
+@keyframes nx-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.72);
+  }
+}
+
+@keyframes nx-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes nx-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nx-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nx-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes nx-slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes nx-slide-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
