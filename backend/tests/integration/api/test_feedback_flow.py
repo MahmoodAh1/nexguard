@@ -14,7 +14,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 async def _first_alert_id(client: httpx.AsyncClient, headers: dict[str, str]) -> str:
     alerts = (await client.get("/api/v1/alerts", headers=headers)).json()
-    return alerts[0]["id"]
+    return str(alerts[0]["id"])
 
 
 async def test_analyst_labels_and_admin_recalibrates(

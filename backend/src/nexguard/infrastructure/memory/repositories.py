@@ -77,6 +77,21 @@ class InMemoryAlertRepository:
             ordered = [a for a in ordered if a.status.value == status]
         return ordered[offset : offset + limit]
 
+    async def total(self) -> int:
+        return len(self._alerts)
+
+    async def severity_counts(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for alert in self._alerts.values():
+            counts[alert.severity.value] = counts.get(alert.severity.value, 0) + 1
+        return counts
+
+    async def status_counts(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for alert in self._alerts.values():
+            counts[alert.status.value] = counts.get(alert.status.value, 0) + 1
+        return counts
+
 
 class InMemoryReportRepository:
     def __init__(self) -> None:

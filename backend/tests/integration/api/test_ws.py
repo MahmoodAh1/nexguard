@@ -11,6 +11,7 @@ from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from nexguard.config.settings import Settings
+from nexguard.domain.entities import UserRole
 from nexguard.interfaces.api.app import create_app
 from nexguard.interfaces.api.container import Container
 from nexguard.interfaces.bootstrap import seed_demo
@@ -23,6 +24,18 @@ async def _seed(settings: Settings, log: str, labels: str) -> None:
     await container.startup()
     try:
         await seed_demo(container, log_path=log, label_path=labels)
+    finally:
+        await container.shutdown()
+
+
+async def _create_user(settings: Settings, email: str, password: str) -> None:
+    container = Container(settings)
+    await container.startup()
+    try:
+        async with container.database.session() as session:
+            await container.create_user(session).execute(
+                email=email, password=password, role=UserRole.ANALYST
+            )
     finally:
         await container.shutdown()
 
@@ -52,6 +65,26 @@ def test_websocket_streams_alert_created(
             message = ws.receive_json()
             assert message["topic"] == "alert.created"
             assert message["severity"] in {"medium", "high", "critical"}
+
+
+def test_websocket_streams_metrics(
+    make_settings: Callable[..., Settings], creds: SimpleNamespace
+) -> None:
+    settings = make_settings()
+    asyncio.run(_create_user(settings, *creds.analyst))
+
+    app = create_app(settings)
+    with TestClient(app) as client:
+        login = client.post(
+            "/api/v1/auth/login",
+            json={"email": creds.analyst[0], "password": creds.analyst[1]},
+        )
+        token = login.json()["access_token"]
+        with client.websocket_connect(f"/ws/metrics?token={token}") as ws:
+            message = ws.receive_json()
+            assert message["topic"] == "metrics.tick"
+            assert "cpu_percent" in message
+            assert "active_alerts" in message
 
 
 def test_websocket_rejects_bad_token(make_settings: Callable[..., Settings]) -> None:

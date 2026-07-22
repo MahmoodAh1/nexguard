@@ -109,6 +109,20 @@ class SqlAlchemyAlertRepository:
         rows = (await self._session.execute(stmt)).scalars().all()
         return [mappers.alert_to_entity(row) for row in rows]
 
+    async def total(self) -> int:
+        result = await self._session.execute(select(func.count()).select_from(AlertRow))
+        return int(result.scalar_one())
+
+    async def severity_counts(self) -> dict[str, int]:
+        stmt = select(AlertRow.severity, func.count()).group_by(AlertRow.severity)
+        rows = (await self._session.execute(stmt)).all()
+        return {str(severity): int(count) for severity, count in rows}
+
+    async def status_counts(self) -> dict[str, int]:
+        stmt = select(AlertRow.status, func.count()).group_by(AlertRow.status)
+        rows = (await self._session.execute(stmt)).all()
+        return {str(status): int(count) for status, count in rows}
+
 
 class SqlAlchemyReportRepository:
     def __init__(self, session: AsyncSession) -> None:

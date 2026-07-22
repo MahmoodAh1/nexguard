@@ -19,6 +19,8 @@ from nexguard.domain.entities import (
     Feedback,
     FeedbackLabel,
     IncidentReport,
+    Session,
+    Template,
     User,
 )
 
@@ -199,3 +201,100 @@ class SystemMetricsOut(BaseModel):
     memory_used_mb: float
     memory_percent: float
     process_rss_mb: float
+
+
+# ── Log Explorer ──
+class LogEventOut(BaseModel):
+    event_id: int
+    raw: str
+    line_no: int
+    timestamp: datetime | None
+
+
+class SessionSummaryOut(BaseModel):
+    id: UUID
+    external_id: str
+    dataset: str
+    event_count: int
+    label: bool | None
+    created_at: datetime
+
+    @classmethod
+    def from_entity(cls, session: Session) -> SessionSummaryOut:
+        return cls(
+            id=session.id,
+            external_id=session.external_id,
+            dataset=session.dataset,
+            event_count=session.event_count,
+            label=session.label,
+            created_at=session.created_at,
+        )
+
+
+class SessionDetailOut(SessionSummaryOut):
+    events: list[LogEventOut]
+
+    @classmethod
+    def from_entity(cls, session: Session) -> SessionDetailOut:
+        base = SessionSummaryOut.from_entity(session)
+        return cls(
+            **base.model_dump(),
+            events=[
+                LogEventOut(
+                    event_id=int(event.event_id),
+                    raw=event.raw,
+                    line_no=event.line_no,
+                    timestamp=event.timestamp,
+                )
+                for event in session.events
+            ],
+        )
+
+
+class TemplateOut(BaseModel):
+    event_id: int
+    template: str
+    occurrences: int
+
+    @classmethod
+    def from_entity(cls, template: Template) -> TemplateOut:
+        return cls(
+            event_id=int(template.event_id),
+            template=template.template,
+            occurrences=template.occurrences,
+        )
+
+
+# ── Detection Analytics ──
+class ScoreBucket(BaseModel):
+    lower: float
+    upper: float
+    count: int
+
+
+class AnalyticsSummaryOut(BaseModel):
+    total_alerts: int
+    by_severity: dict[str, int]
+    by_status: dict[str, int]
+    score_histogram: list[ScoreBucket]
+    seq_weight: float
+    stat_weight: float
+    threshold: float
+    detectors_loaded: bool
+    latest_calibration: CalibrationSnapshotOut | None
+
+
+# ── Configuration ──
+class ConfigOut(BaseModel):
+    seq_weight: float
+    stat_weight: float
+    threshold: float
+    detectors_loaded: bool
+    llm_provider: str
+    model_name: str
+
+
+class ConfigUpdateRequest(BaseModel):
+    seq_weight: float | None = Field(default=None, ge=0.0, le=1.0)
+    stat_weight: float | None = Field(default=None, ge=0.0, le=1.0)
+    threshold: float | None = Field(default=None, ge=0.0, le=1.0)

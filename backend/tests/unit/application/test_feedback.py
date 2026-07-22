@@ -53,7 +53,7 @@ def _alert(score: float) -> Alert:
 
 
 def _runtime() -> RuntimeConfig:
-    return RuntimeConfig.from_settings(Settings(_env_file=None))  # type: ignore[arg-type]
+    return RuntimeConfig.from_settings(Settings(_env_file=None))
 
 
 async def test_submit_feedback_persists_label() -> None:
@@ -76,9 +76,9 @@ async def test_submit_feedback_persists_label() -> None:
 
 async def test_submit_feedback_on_missing_alert_raises() -> None:
     with pytest.raises(NotFoundError):
-        await SubmitFeedback(InMemoryFeedbackRepository(), InMemoryAlertRepository()).execute(
-            alert_id=uuid4(), analyst_id=uuid4(), label=FeedbackLabel.BENIGN
-        )
+        await SubmitFeedback(
+            InMemoryFeedbackRepository(), InMemoryAlertRepository()
+        ).execute(alert_id=uuid4(), analyst_id=uuid4(), label=FeedbackLabel.BENIGN)
 
 
 async def test_recalibration_improves_precision_from_feedback() -> None:
