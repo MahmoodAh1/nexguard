@@ -42,4 +42,4 @@ four phases. **178 tests** (166 backend + 12 frontend, plus Playwright e2e),
 - `SECURITY.md` threat model, `docs/TESTING.md` matrix, `docs/DEPLOYMENT.md` guide,
   reproducible benchmarks and dataset download.
 
-[0.1.0]: https://github.com/your-org/nexguard/releases/tag/v0.1.0
+[0.1.0]: https://github.com/MahmoodAh1/nexguard/releases/tag/v0.1.0
