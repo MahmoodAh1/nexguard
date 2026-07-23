@@ -22,7 +22,16 @@ class RedisEventBus:
     """Redis pub/sub implementation of the EventBus port."""
 
     def __init__(self, url: str, *, redis: Redis | None = None) -> None:
-        self._redis: Redis = redis or Redis.from_url(url, decode_responses=True)
+        # Fail fast: an unreachable broker must surface an error, never hang the
+        # request (or the seed pipeline) indefinitely. redis.asyncio defaults to
+        # no connect/read timeout, so we set them explicitly.
+        self._redis: Redis = redis or Redis.from_url(
+            url,
+            decode_responses=True,
+            socket_connect_timeout=5.0,
+            socket_timeout=5.0,
+            socket_keepalive=True,
+        )
 
     async def publish(self, event: object) -> None:
         if not isinstance(event, DomainEvent):

@@ -16,6 +16,7 @@ from nexguard.config.settings import get_settings
 from nexguard.domain.entities import UserRole
 from nexguard.interfaces.api.container import Container
 from nexguard.interfaces.bootstrap import seed_demo
+from nexguard.observability.logging import configure_logging
 
 _DEFAULT_LOG = "tests/fixtures/hdfs/hdfs_sample.log"
 _DEFAULT_LABELS = "tests/fixtures/hdfs/anomaly_label.csv"
@@ -44,6 +45,11 @@ def main(argv: list[str] | None = None) -> int:
     user.add_argument("--role", choices=[r.value for r in UserRole], default=UserRole.VIEWER.value)
 
     args = parser.parse_args(argv)
+
+    # Configure structured logging for every command so operational output
+    # (seeding, migrations) is visible in container logs, not just under `serve`.
+    settings = get_settings()
+    configure_logging(level=settings.log_level, json_output=settings.log_json)
 
     if args.command == "serve":
         return _serve(args.host, args.port, reload=args.reload)

@@ -9,8 +9,8 @@ dockerfilePath = "Dockerfile"
 [deploy]
 # Migrations are mandatory; seeding is idempotent and best-effort (a transient
 # seed hiccup must not take the API down — it self-heals on the next boot).
-startCommand = "alembic upgrade head && (nexguard seed || true) && nexguard serve"
+startCommand = "alembic upgrade head && (nexguard seed || true) && nexguard serve --port ${PORT:-8000}"
 healthcheckPath = "/health"
-healthcheckTimeout = 300
+healthcheckTimeout = 600
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
