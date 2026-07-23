@@ -15,6 +15,7 @@ from nexguard.interfaces.api.deps import (
     ViewerUser,
 )
 from nexguard.interfaces.api.schemas import AlertDetailOut, AlertOut, ReportOut
+from nexguard.observability.metrics import record_report
 
 router = APIRouter(prefix="/api/v1/alerts", tags=["alerts"])
 
@@ -55,6 +56,7 @@ async def generate_report(
     regenerate: Annotated[bool, Query()] = False,
 ) -> ReportOut:
     report = await container.generate_report(session).execute(alert_id, regenerate=regenerate)
+    record_report(verified=report.verified)
     await container.audit(session).record(
         actor_id=user.id,
         action="generate_report",

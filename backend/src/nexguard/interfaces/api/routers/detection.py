@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from nexguard.domain.errors import NotFoundError
 from nexguard.interfaces.api.deps import AnalystUser, ContainerDep, SessionDep
 from nexguard.interfaces.api.schemas import DetectionRunOut
+from nexguard.observability.metrics import DETECTION_LATENCY, record_alert
 
 router = APIRouter(prefix="/api/v1/detection", tags=["detection"])
 
@@ -36,7 +37,10 @@ async def run_detection(
     if target is None:
         raise NotFoundError("Session", session_id)
 
-    alert = await use_case.execute(target)
+    with DETECTION_LATENCY.time():
+        alert = await use_case.execute(target)
+    if alert is not None:
+        record_alert(alert.severity.value)
     await container.audit(session).record(
         actor_id=user.id,
         action="run_detection",
