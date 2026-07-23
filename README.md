@@ -12,6 +12,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-22d3ee)](#license)
 &nbsp;·&nbsp; **181 tests** &nbsp;·&nbsp; `mypy --strict` clean &nbsp;·&nbsp; local-first, privacy-preserving
 
+**[▶ Live console](https://nexguard-sandy.vercel.app)** &nbsp;·&nbsp; [API](https://nexguard-api-production-713d.up.railway.app/health) &nbsp;·&nbsp; [API docs](https://nexguard-api-production-713d.up.railway.app/docs) &nbsp;— _sign in as_ `analyst@nexguard.local` / `NexGuardAnalyst!23`
+
 </div>
 
 ---

@@ -4,6 +4,16 @@ NexGuard deploys as two units: the **frontend** to Vercel and the **backend
 (API + Postgres + Redis)** to Render (or Railway/any container host). Everything
 stays local-first — the only external service is the model host you choose.
 
+## Live demo
+
+| Unit | URL |
+|------|-----|
+| **Console (Vercel)** | https://nexguard-sandy.vercel.app |
+| **API (Railway)** | https://nexguard-api-production-713d.up.railway.app · [`/docs`](https://nexguard-api-production-713d.up.railway.app/docs) · [`/health`](https://nexguard-api-production-713d.up.railway.app/health) |
+
+Sign in with the seeded demo analyst (shown on the login screen):
+`analyst@nexguard.local` / `NexGuardAnalyst!23`.
+
 ## Local — full stack (fastest)
 
 ```bash
@@ -35,9 +45,45 @@ PostgreSQL database, a Redis instance, and a 1 GB disk for model artifacts.
 > Postgres URL note: Render/Railway hand out `postgres://` URLs; the app normalizes
 > them to the async `postgresql+asyncpg://` driver automatically.
 
-**Railway** is equivalent: add PostgreSQL + Redis plugins, deploy the backend from
-the repo with **Root Directory = `backend`** (Railway builds `backend/Dockerfile`),
-set the same `NEXGUARD_*` env vars, and run `alembic upgrade head && nexguard seed`.
+### Railway
+
+The live API runs on Railway, configured by [`backend/railway.toml`](../backend/railway.toml)
+(Docker build, `startCommand = nexguard serve --port 8000`, `/health` check). Deploy
+from `backend/` with the Railway CLI:
+
+```bash
+cd backend
+railway login
+railway init --name nexguard          # create the project
+railway add --database postgres        # + redis
+railway add --database redis
+railway add --service nexguard-api     # the API service
+railway volume add --mount-path /models   # (optional) persist model artifacts
+```
+
+Then set env vars on `nexguard-api` (`railway variables --set …`): `NEXGUARD_ENV=production`,
+`NEXGUARD_EVENT_BUS=memory` (single instance), `NEXGUARD_LLM_PROVIDER=stub`,
+`NEXGUARD_JWT_SECRET=<strong>`, and — importantly — point the DB at the **public**
+connection string so the container isn't subject to private-network cold-start:
+`NEXGUARD_DATABASE_URL=${{Postgres.DATABASE_PUBLIC_URL}}`. Deploy with `railway up`,
+then `railway domain --port 8000`.
+
+**Two Railway gotchas learned the hard way** (both encoded above):
+
+1. Railway only wraps `startCommand` in a shell when it contains a shell operator
+   (`&&`), so `${PORT:-8000}` in a bare command is passed *literally*. Use a literal
+   port (`--port 8000`); the image `EXPOSE`s 8000.
+2. Running `alembic upgrade head` at container boot hangs on Railway's DB connect
+   (private-network cold start). Apply migrations and seed **once, out of band**
+   against the public proxy instead of on every boot:
+   ```bash
+   NEXGUARD_DATABASE_URL="<DATABASE_PUBLIC_URL>" \
+     uv run --extra postgres alembic upgrade head
+   NEXGUARD_DATABASE_URL="<DATABASE_PUBLIC_URL>" NEXGUARD_EVENT_BUS=memory \
+     uv run --extra postgres nexguard seed
+   ```
+   The app's production startup needs no DB and `/health` is DB-free, so `serve`
+   becomes healthy immediately; the DB is only touched on real API calls.
 
 ## Frontend → Vercel
 
