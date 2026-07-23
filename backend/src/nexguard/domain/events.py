@@ -46,8 +46,12 @@ class AlertCreated(DomainEvent):
     score: float = 0.0
 
     def to_payload(self) -> dict[str, object]:
+        # Explicit two-arg super(): @dataclass(slots=True) rebuilds the class, so
+        # zero-arg super()'s implicit __class__ cell points at the pre-slots class
+        # and raises TypeError on Python < 3.14. Naming the class resolves it at
+        # call time on every interpreter version.
         return {
-            **super().to_payload(),
+            **super(AlertCreated, self).to_payload(),
             "alert_id": str(self.alert_id),
             "session_external_id": self.session_external_id,
             "severity": self.severity.value,
@@ -65,8 +69,9 @@ class ReportGenerated(DomainEvent):
     verified: bool = False
 
     def to_payload(self) -> dict[str, object]:
+        # See AlertCreated.to_payload — explicit super() for slots+super safety.
         return {
-            **super().to_payload(),
+            **super(ReportGenerated, self).to_payload(),
             "alert_id": str(self.alert_id),
             "report_id": str(self.report_id),
             "verified": self.verified,
