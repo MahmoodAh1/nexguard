@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from uuid import UUID
+
 from nexguard.domain.auth import TokenPair
 from nexguard.domain.entities import User, UserRole
 from nexguard.domain.errors import AuthenticationError, ValidationError
@@ -43,6 +45,20 @@ class Authenticate:
         password_ok = self._hasher.verify(password, password_hash)
         if user is None or not user.is_active or not password_ok:
             raise AuthenticationError("invalid email or password")
+        return self._tokens.issue(user)
+
+    async def refresh(self, *, refresh_token: str) -> TokenPair:
+        """Exchange a valid refresh token for a fresh access+refresh pair (rotation)."""
+        claims = self._tokens.decode(refresh_token)
+        if claims.token_type != "refresh":
+            raise AuthenticationError("a refresh token is required")
+        try:
+            user_id = UUID(claims.subject)
+        except ValueError as exc:
+            raise AuthenticationError("malformed token subject") from exc
+        user = await self._users.get(user_id)
+        if user is None or not user.is_active:
+            raise AuthenticationError("user not found or inactive")
         return self._tokens.issue(user)
 
 

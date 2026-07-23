@@ -101,3 +101,42 @@ async def test_auth_endpoint_rate_limited(
         assert 429 in statuses
     finally:
         await container.shutdown()
+
+
+async def test_refresh_rotates_tokens(
+    client: httpx.AsyncClient, seeded: object, creds: SimpleNamespace
+) -> None:
+    login = await client.post(
+        "/api/v1/auth/login",
+        json={"email": creds.analyst[0], "password": creds.analyst[1]},
+    )
+    tokens = login.json()
+
+    refreshed = await client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
+    )
+    assert refreshed.status_code == 200
+    new_tokens = refreshed.json()
+    assert new_tokens["access_token"] and new_tokens["refresh_token"]
+
+    me = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {new_tokens['access_token']}"},
+    )
+    assert me.status_code == 200
+
+
+async def test_refresh_rejects_an_access_token(
+    client: httpx.AsyncClient, seeded: object, creds: SimpleNamespace
+) -> None:
+    login = await client.post(
+        "/api/v1/auth/login",
+        json={"email": creds.analyst[0], "password": creds.analyst[1]},
+    )
+    tokens = login.json()
+
+    # An access token must not be usable as a refresh token.
+    response = await client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": tokens["access_token"]}
+    )
+    assert response.status_code == 401

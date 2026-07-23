@@ -5,7 +5,12 @@ from __future__ import annotations
 from fastapi import APIRouter, Request
 
 from nexguard.interfaces.api.deps import ContainerDep, CurrentUser, SessionDep
-from nexguard.interfaces.api.schemas import LoginRequest, TokenResponse, UserOut
+from nexguard.interfaces.api.schemas import (
+    LoginRequest,
+    RefreshRequest,
+    TokenResponse,
+    UserOut,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -21,6 +26,14 @@ async def login(
         resource=body.email,
         ip=request.client.host if request.client else None,
     )
+    return TokenResponse.from_pair(pair)
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh(
+    body: RefreshRequest, container: ContainerDep, session: SessionDep
+) -> TokenResponse:
+    pair = await container.authenticate(session).refresh(refresh_token=body.refresh_token)
     return TokenResponse.from_pair(pair)
 
 
