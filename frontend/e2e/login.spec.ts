@@ -6,8 +6,10 @@ test.describe("SOC console", () => {
   test("analyst signs in and reaches the live dashboard", async ({ page }) => {
     await page.goto("/login");
 
-    await page.getByLabel("Email").fill(ANALYST.email);
-    await page.getByLabel("Password").fill(ANALYST.password);
+    await page.getByLabel("Email", { exact: true }).fill(ANALYST.email);
+    // exact: true — the show/hide toggle's aria-label ("Show password") would
+    // otherwise also match a substring "Password" locator (strict-mode violation).
+    await page.getByLabel("Password", { exact: true }).fill(ANALYST.password);
     await page.getByRole("button", { name: /sign in/i }).click();
 
     await expect(page).toHaveURL(/\/dashboard/);
@@ -19,8 +21,10 @@ test.describe("SOC console", () => {
 
   test("navigates to the Alert Explorer", async ({ page }) => {
     await page.goto("/login");
-    await page.getByLabel("Email").fill(ANALYST.email);
-    await page.getByLabel("Password").fill(ANALYST.password);
+    await page.getByLabel("Email", { exact: true }).fill(ANALYST.email);
+    // exact: true — the show/hide toggle's aria-label ("Show password") would
+    // otherwise also match a substring "Password" locator (strict-mode violation).
+    await page.getByLabel("Password", { exact: true }).fill(ANALYST.password);
     await page.getByRole("button", { name: /sign in/i }).click();
     await expect(page).toHaveURL(/\/dashboard/);
 

@@ -31,7 +31,8 @@ mlartifacts/
 ml/data/raw/
 ml/data/processed/
 !ml/data/samples/
-models/artifacts/
+# trained artifacts are generated (seed / training) — match at any depth
+**/models/artifacts/
 
 # ── Node / Next.js ─────────────────────────────────────
 node_modules/
@@ -46,6 +47,10 @@ frontend/.env*
 npm-debug.log*
 pnpm-debug.log*
 *.tsbuildinfo
+
+# ── Logs ───────────────────────────────────────────────
+# local/CI server boot logs (api.log, web.log) and the like
+*.log
 
 # ── Databases ──────────────────────────────────────────
 *.sqlite
