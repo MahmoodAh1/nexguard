@@ -38,6 +38,9 @@ node_modules/
 .next/
 out/
 .turbo/
+test-results/
+playwright-report/
+playwright/.cache/
 frontend/.env*
 !frontend/.env.example
 npm-debug.log*

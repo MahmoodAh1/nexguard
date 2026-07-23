@@ -41,8 +41,8 @@ jobs:
       - name: Type check (mypy --strict)
         run: uv run mypy
 
-      - name: Tests (pytest)
-        run: uv run pytest -q
+      - name: Tests (pytest + coverage)
+        run: uv run pytest -q --cov=nexguard --cov-report=term-missing
 
   frontend:
     name: Frontend (vitest · build)
@@ -93,6 +93,50 @@ jobs:
       - name: Node dependency audit (advisory)
         working-directory: frontend
         run: npm audit --audit-level=high || true
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.26"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv python install 3.12
+
+      - name: Seed backend + start API
+        working-directory: backend
+        run: |
+          uv sync --frozen
+          uv run nexguard seed
+          nohup uv run nexguard serve > api.log 2>&1 &
+          for i in $(seq 1 40); do curl -sf http://localhost:8000/health && break; sleep 2; done
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build + start frontend
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+        run: |
+          npm ci
+          npm run build
+          nohup npm run start > web.log 2>&1 &
+          for i in $(seq 1 40); do curl -sf http://localhost:3000/login && break; sleep 2; done
+
+      - name: Run Playwright
+        working-directory: frontend
+        run: |
+          npx playwright install --with-deps chromium
+          npm run e2e
 
   docker:
     name: Docker images build
