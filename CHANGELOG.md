@@ -6,7 +6,7 @@ All notable changes to NexGuard are documented here. This project follows
 ## [0.1.0] — 2026-07-23
 
 First public release: a complete, local-first AI-powered SOC platform built across
-four phases. **178 tests** (166 backend + 12 frontend, plus Playwright e2e),
+four phases. **181 tests** (169 backend + 12 frontend, plus Playwright e2e),
 `mypy --strict` clean.
 
 ### Detection & AI

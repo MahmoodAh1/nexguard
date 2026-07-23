@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12-3776ab)](backend/pyproject.toml)
 [![Next.js](https://img.shields.io/badge/Next.js-15-000000)](frontend/package.json)
 [![License](https://img.shields.io/badge/License-Apache%202.0-22d3ee)](#license)
-&nbsp;·&nbsp; **178 tests** &nbsp;·&nbsp; `mypy --strict` clean &nbsp;·&nbsp; local-first, privacy-preserving
+&nbsp;·&nbsp; **181 tests** &nbsp;·&nbsp; `mypy --strict` clean &nbsp;·&nbsp; local-first, privacy-preserving
 
 </div>
 
@@ -159,7 +159,7 @@ are in **[`docs/benchmarks.md`](docs/benchmarks.md)**. Reproduce with
 ## 🧪 Testing
 
 ```bash
-cd backend  && uv run pytest -q          # 166 backend tests (unit/integration/api/regression)
+cd backend  && uv run pytest -q          # 169 backend tests (unit/integration/api/regression)
 cd frontend && npm run test              # 12 component/unit tests
 cd frontend && npm run e2e               # Playwright e2e (needs a seeded stack; CI-gated)
 ```
