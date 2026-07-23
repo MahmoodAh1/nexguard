@@ -41,3 +41,16 @@ def test_production_rejects_insecure_secret() -> None:
 def test_production_accepts_strong_secret() -> None:
     settings = _settings(env="production", jwt_secret=SecretStr(STRONG_SECRET))
     assert settings.is_production is True
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("postgres://u:p@h:5432/db", "postgresql+asyncpg://u:p@h:5432/db"),
+        ("postgresql://u:p@h/db", "postgresql+asyncpg://u:p@h/db"),
+        ("sqlite+aiosqlite:///./x.db", "sqlite+aiosqlite:///./x.db"),
+        ("postgresql+asyncpg://u:p@h/db", "postgresql+asyncpg://u:p@h/db"),
+    ],
+)
+def test_database_url_is_normalized_for_async_driver(raw: str, expected: str) -> None:
+    assert _settings(database_url=raw).database_url == expected

@@ -6,9 +6,9 @@ layer, then iterative deepening. Progress is gated — work proceeds autonomousl
 
 ---
 
-## Phase 0 — Architecture (this phase)
+## Phase 0 — Architecture ✅ COMPLETE
 **Deliverable:** the documents in `docs/architecture/` + ADRs + design spec.
-**Gate 0:** architecture & structure approved. ⤶ _you are here_
+**Gate 0:** architecture & structure approved.
 
 ## Phase 1 — Vertical slice (Checkpoint 1) ✅ COMPLETE
 One thin-but-**real** path end to end — delivered: 134 tests (123 backend + 11
@@ -54,12 +54,18 @@ with persisted before/after precision/recall (`CalibrationSnapshot`); runtime-
 adjustable operating point (admin) with audit; sessions/templates/analytics/config
 APIs; loading + empty states throughout. **Gate 3 reached.**
 
-## Phase 4 — Hardening & delivery
-Security hardening pass, observability dashboards, full test matrix (unit /
-integration / regression / API / db / ml / frontend / e2e), Docker/Compose
-production profile, GitHub Actions CI, pre-commit, README with screenshots +
-benchmarks + limitations + roadmap.
-**Gate 4 — release candidate.**
+## Phase 4 — Hardening & delivery ✅ COMPLETE
+Security hardening pass (refresh-token rotation, CSP/HSTS/X-Frame security headers
+front+back, `SECURITY.md` threat model, CI supply-chain audits: gitleaks / pip-audit
+/ npm audit); observability (Prometheus metrics via middleware + Grafana dashboards,
+compose profile); full test matrix (unit / integration / regression / API / db / ml /
+frontend / **Playwright e2e**) documented in [docs/TESTING.md](../TESTING.md) and run
+in CI; Docker/Compose production profile; GitHub Actions CI (lint · type · test ·
+coverage · security · e2e · image builds); pre-commit; one-command deploy
+([render.yaml](../../render.yaml) blueprint + Vercel, guide in
+[docs/DEPLOYMENT.md](../DEPLOYMENT.md)); [CHANGELOG.md](../../CHANGELOG.md) v0.1.0;
+README refreshed (benchmarks + limitations + roadmap + deploy).
+**Gate 4 reached — v0.1.0 release candidate.**
 
 ---
 

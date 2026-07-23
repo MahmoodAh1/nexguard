@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12-3776ab)](backend/pyproject.toml)
 [![Next.js](https://img.shields.io/badge/Next.js-15-000000)](frontend/package.json)
 [![License](https://img.shields.io/badge/License-Apache%202.0-22d3ee)](#license)
-&nbsp;·&nbsp; **169 tests** &nbsp;·&nbsp; `mypy --strict` clean &nbsp;·&nbsp; local-first, privacy-preserving
+&nbsp;·&nbsp; **178 tests** &nbsp;·&nbsp; `mypy --strict` clean &nbsp;·&nbsp; local-first, privacy-preserving
 
 </div>
 
@@ -24,10 +24,12 @@ reports, and a **hallucination-verification gate** that refuses to let the copil
 fabricate evidence. Nothing leaves your infrastructure — the LLM is a local Ollama
 model, never a cloud API.
 
-> **Status — Phases 1–3 complete.** The full platform is built: layered detection
-> with model comparison + calibration + MLflow, the analyst feedback loop, and all
-> 8 console pages live. Phase 4 (hardening + release polish) remains — see the
-> [roadmap](#-roadmap) and [`docs/architecture/build-plan.md`](docs/architecture/build-plan.md).
+> **Status — v0.1.0, all four phases complete.** Layered detection with model
+> comparison + calibration + MLflow, verified LLM triage, the analyst feedback loop,
+> all 8 console pages, Prometheus/Grafana observability, a security-hardening pass,
+> the full test matrix (incl. Playwright e2e), and one-command deploy. See the
+> [roadmap](#-roadmap), [`CHANGELOG.md`](CHANGELOG.md), and
+> [`docs/architecture/build-plan.md`](docs/architecture/build-plan.md).
 
 ## ✨ Highlights
 
@@ -157,8 +159,9 @@ are in **[`docs/benchmarks.md`](docs/benchmarks.md)**. Reproduce with
 ## 🧪 Testing
 
 ```bash
-cd backend  && uv run pytest -q          # 157 backend tests (unit/integration/api/regression)
+cd backend  && uv run pytest -q          # 166 backend tests (unit/integration/api/regression)
 cd frontend && npm run test              # 12 component/unit tests
+cd frontend && npm run e2e               # Playwright e2e (needs a seeded stack; CI-gated)
 ```
 
 Coverage spans domain logic, every adapter (real SQLite/Drain3/PyTorch/sklearn),
@@ -186,16 +189,19 @@ append-only audit logging, per-identity rate limiting, security headers (CSP, HS
 X-Frame-Options), Pydantic input validation, and env-injected secrets (nothing
 sensitive is committed). See [ADR-0006](docs/architecture/adr/0006-security-model.md).
 
-## ⚠️ Limitations (current checkpoint)
+## ⚠️ Limitations & honest caveats
 
-- Model comparison, ROC/PR curves, MLflow tracking, and full-dataset benchmarks are
-  **Phase 2**; results above are on the bundled fixture.
-- The console ships the Executive Dashboard; the other seven pages (Alert Explorer,
-  Incident Reports, Log Explorer, Detection Analytics, Live Monitoring, Feedback
-  Center, Configuration) are scaffolded in the nav and land in **Phase 3**.
-- The analyst feedback loop + recalibration are **Phase 3**.
-- Ollama is optional; without it, a deterministic stub provider keeps the pipeline
-  and CI fully functional (real reports need a local model).
+- Detection results above are on the **bundled deterministic HDFS fixture** (60+10
+  blocks) — a controlled slice, not a claim of field accuracy. Full-dataset
+  methodology and an honest reading of Isolation Forest's near-random showing are in
+  [`docs/benchmarks.md`](docs/benchmarks.md).
+- **Ollama is optional**; without it a deterministic stub provider keeps the pipeline
+  and CI fully functional (real triage reports need a local model).
+- Rate limiting is **per-process** (in-memory); a multi-instance deployment should
+  back it with Redis. Playwright e2e runs in **CI** (needs a live seeded stack +
+  browser), not as part of the plain unit run.
+- Screenshots below are placeholders until captured from a running console —
+  everything they'd show is reproducible with `docker compose up`.
 
 ## 🗺️ Roadmap
 
@@ -204,7 +210,17 @@ sensitive is committed). See [ADR-0006](docs/architecture/adr/0006-security-mode
 | **1 — Vertical slice** ✅ | End-to-end path: ingest → parse → detect → explain → alert → verified report → API/WS → live dashboard |
 | **2 — Detection & MLOps** ✅ | Transformer variant, evaluation harness + metrics, model comparison, MLflow, threshold calibration, BGL/CICIDS adapters, benchmarks |
 | **3 — Full platform** ✅ | All 8 console pages, analyst feedback loop + recalibration, streaming metrics |
-| **4 — Hardening & delivery** | Security pass, observability dashboards, deployment, release polish |
+| **4 — Hardening & delivery** ✅ | Refresh-token rotation + CSP/security headers + threat model, Prometheus/Grafana, full test matrix + Playwright e2e, one-command deploy (Vercel + Render), release polish |
+
+## 🚢 Deploy
+
+- **Local / demo:** `docker compose -f docker/docker-compose.yml up --build` (add
+  `--profile observability` for Prometheus + Grafana).
+- **Cloud:** frontend → **Vercel**, backend + Postgres + Redis → **Render** via the
+  one-click [`render.yaml`](render.yaml) blueprint.
+
+Full walkthrough — env vars, migrations, seeding, and free-tier caveats — in
+**[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)**.
 
 ## License
 

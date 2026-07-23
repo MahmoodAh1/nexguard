@@ -1,0 +1,53 @@
+# Render Blueprint — one-click backend deploy (API + PostgreSQL + Redis).
+# Deploy: push to GitHub, then "New +" → "Blueprint" and point at this repo.
+# The frontend deploys separately to Vercel (see docs/DEPLOYMENT.md).
+
+services:
+  - type: web
+    name: nexguard-api
+    runtime: docker
+    dockerfilePath: docker/Dockerfile.backend
+    dockerContext: backend
+    healthCheckPath: /health
+    # Apply migrations before each deploy; seed the demo once from the shell.
+    preDeployCommand: "alembic upgrade head"
+    disk:
+      name: models
+      mountPath: /models
+      sizeGB: 1
+    envVars:
+      - key: NEXGUARD_ENV
+        value: production
+      - key: NEXGUARD_LOG_JSON
+        value: "true"
+      - key: NEXGUARD_EVENT_BUS
+        value: redis
+      - key: NEXGUARD_LLM_PROVIDER
+        value: stub
+      - key: NEXGUARD_MODEL_ARTIFACT_DIR
+        value: /models/artifacts
+      - key: NEXGUARD_CORS_ORIGINS
+        sync: false # set to your Vercel URL, e.g. https://nexguard.vercel.app
+      - key: NEXGUARD_JWT_SECRET
+        generateValue: true
+      - key: NEXGUARD_DATABASE_URL
+        fromDatabase:
+          name: nexguard-db
+          property: connectionString
+      - key: NEXGUARD_REDIS_URL
+        fromService:
+          type: redis
+          name: nexguard-redis
+          property: connectionString
+
+  - type: redis
+    name: nexguard-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+databases:
+  - name: nexguard-db
+    plan: free
+    databaseName: nexguard
+    user: nexguard

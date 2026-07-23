@@ -80,6 +80,18 @@ class Settings(BaseSettings):
             raise ValueError(f"invalid log level {value!r}; expected one of {sorted(valid)}")
         return level
 
+    @field_validator("database_url")
+    @classmethod
+    def _normalize_database_url(cls, value: str) -> str:
+        # Managed Postgres providers (Render, Railway, Heroku) hand out
+        # `postgres://` / `postgresql://` URLs; SQLAlchemy's async engine needs the
+        # asyncpg driver. Normalize so those URLs work out of the box.
+        if value.startswith("postgres://"):
+            return "postgresql+asyncpg://" + value[len("postgres://") :]
+        if value.startswith("postgresql://"):
+            return "postgresql+asyncpg://" + value[len("postgresql://") :]
+        return value
+
     @model_validator(mode="after")
     def _reject_insecure_production_secret(self) -> Settings:
         if self.is_production:

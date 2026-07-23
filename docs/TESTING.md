@@ -24,7 +24,7 @@ models on CPU (a few seconds each).
 ## Running everything
 
 ```bash
-# Backend (157 tests) with coverage
+# Backend (166 tests) with coverage
 cd backend && uv run pytest -q --cov=nexguard
 
 # Frontend unit/component (12 tests)
