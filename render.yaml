@@ -6,7 +6,7 @@ services:
   - type: web
     name: nexguard-api
     runtime: docker
-    dockerfilePath: docker/Dockerfile.backend
+    dockerfilePath: backend/Dockerfile
     dockerContext: backend
     healthCheckPath: /health
     # Apply migrations before each deploy; seed the demo once from the shell.

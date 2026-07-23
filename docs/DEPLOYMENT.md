@@ -35,9 +35,9 @@ PostgreSQL database, a Redis instance, and a 1 GB disk for model artifacts.
 > Postgres URL note: Render/Railway hand out `postgres://` URLs; the app normalizes
 > them to the async `postgresql+asyncpg://` driver automatically.
 
-**Railway** is equivalent: add PostgreSQL + Redis plugins, deploy the backend with
-`docker/Dockerfile.backend`, set the same `NEXGUARD_*` env vars, and run
-`alembic upgrade head && nexguard seed`.
+**Railway** is equivalent: add PostgreSQL + Redis plugins, deploy the backend from
+the repo with **Root Directory = `backend`** (Railway builds `backend/Dockerfile`),
+set the same `NEXGUARD_*` env vars, and run `alembic upgrade head && nexguard seed`.
 
 ## Frontend → Vercel
 

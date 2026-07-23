@@ -148,7 +148,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./backend
-          file: ./docker/Dockerfile.backend
+          file: ./backend/Dockerfile
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max

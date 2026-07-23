@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
-# Multi-stage build for the NexGuard backend (build context: ./backend).
-# Torch is pinned to CPU wheels via pyproject, so the image stays lean.
+# Multi-stage build for the NexGuard backend. Build context is this directory
+# (backend/), so paths below are relative to it. Used by docker-compose, the
+# Render blueprint, CI, and Railway (which builds with the service root as context).
 
 FROM python:3.12-slim AS builder
 

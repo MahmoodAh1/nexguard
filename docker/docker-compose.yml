@@ -47,7 +47,7 @@ services:
   seed:
     build:
       context: ../backend
-      dockerfile: ../docker/Dockerfile.backend
+      dockerfile: Dockerfile
     image: nexguard-backend:local
     environment: *backend-env
     command: sh -lc "alembic upgrade head && nexguard seed"
@@ -62,7 +62,7 @@ services:
     image: nexguard-backend:local
     build:
       context: ../backend
-      dockerfile: ../docker/Dockerfile.backend
+      dockerfile: Dockerfile
     environment: *backend-env
     command: ["nexguard", "serve"]
     ports:
