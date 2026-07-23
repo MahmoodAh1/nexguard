@@ -65,3 +65,33 @@ async def test_seeded_anomalies_are_all_flagged_with_no_false_positives(
         assert len(persisted) == 10
     finally:
         await container.shutdown()
+
+
+async def test_seed_is_idempotent_on_reruns(tmp_path: Path) -> None:
+    """Re-running seed (as managed hosts do on every boot) must not duplicate."""
+    container = Container(_settings(tmp_path))
+    await container.startup()
+    try:
+        first = await seed_demo(
+            container,
+            log_path=str(_FIXTURES / "hdfs_sample.log"),
+            label_path=str(_FIXTURES / "anomaly_label.csv"),
+        )
+        assert first.skipped is False
+        assert first.alerts_created == 10
+
+        # Second run detects the populated DB and short-circuits.
+        second = await seed_demo(
+            container,
+            log_path=str(_FIXTURES / "hdfs_sample.log"),
+            label_path=str(_FIXTURES / "anomaly_label.csv"),
+        )
+        assert second.skipped is True
+        assert second.sessions_ingested == 0
+        assert second.users_created == 0
+
+        # No duplication: still exactly the 10 original alerts.
+        async with container.database.session() as session:
+            assert await container.alerts(session).total() == 10
+    finally:
+        await container.shutdown()

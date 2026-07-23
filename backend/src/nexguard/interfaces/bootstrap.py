@@ -52,6 +52,7 @@ class SeedResult:
     users_created: int = 0
     sessions_ingested: int = 0
     alerts_created: int = 0
+    skipped: bool = False
     outcomes: list[SeedOutcome] = field(default_factory=list)
 
 
@@ -66,6 +67,17 @@ async def seed_demo(
     create_users: bool = True,
 ) -> SeedResult:
     result = SeedResult()
+
+    # Idempotent by design: if this database was already seeded, skip ingest,
+    # training, and alerting so restarts and redeploys never duplicate data.
+    # Managed hosts (Railway, Render) run `nexguard seed` on every boot; the
+    # model artifacts persist on the mounted volume and are reloaded by
+    # `nexguard serve` on startup, so a skip still serves a fully-armed detector.
+    async with container.database.session() as db:
+        existing_alerts = await container.alerts(db).total()
+    if existing_alerts > 0:
+        logger.info("seed_skipped", reason="already_seeded", alerts=existing_alerts)
+        return SeedResult(alerts_created=existing_alerts, skipped=True)
 
     # 1. Ingest + parse the fixture into persisted sessions.
     miner = Drain3TemplateMiner()

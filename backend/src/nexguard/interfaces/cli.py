@@ -86,6 +86,9 @@ async def _seed(log: str, labels: str, epochs: int) -> int:
         result = await seed_demo(container, log_path=log, label_path=labels, lstm_epochs=epochs)
     finally:
         await container.shutdown()
+    if result.skipped:
+        print(f"already seeded: {result.alerts_created} alerts present — nothing to do")
+        return 0
     anomalies = sum(1 for o in result.outcomes if o.is_anomaly)
     detected = sum(1 for o in result.outcomes if o.is_anomaly and o.alerted)
     print(

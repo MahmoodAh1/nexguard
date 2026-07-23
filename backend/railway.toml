@@ -1,0 +1,16 @@
+# Railway service config for the NexGuard backend (config-as-code).
+# Railway reads this from the deploy root (backend/). Mirrors the render.yaml
+# blueprint and docker-compose so every target builds the same image.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Migrations are mandatory; seeding is idempotent and best-effort (a transient
+# seed hiccup must not take the API down — it self-heals on the next boot).
+startCommand = "alembic upgrade head && (nexguard seed || true) && nexguard serve"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
